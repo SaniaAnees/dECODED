@@ -1,8 +1,10 @@
-"""decodedd local proxy — prefix-normalizing daemon for AI coding agents.
+"""dECODED local proxy.
 
-Drop-in replacement for the Anthropic API base URL. Listens on localhost,
-normalizes tool/system prefixes for KV-cache hits, and logs token/cost
-telemetry to SQLite.
+Listens on localhost:8080, normalizes LLM JSON so prefixes stay byte-exact,
+forwards asynchronously to Groq or OpenRouter, and logs token usage to SQLite.
+
+  POST /v1/chat/completions   OpenAI / Groq / OpenRouter shape
+  POST /v1/messages           Anthropic shape (translated before forwarding)
 """
 
 from __future__ import annotations
@@ -14,260 +16,583 @@ import sys
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Any
-from urllib.parse import urljoin
+from typing import Any, AsyncIterator
 
 import httpx
-from dotenv import load_dotenv
-from fastapi import FastAPI, Request, Response
-from fastapi.responses import JSONResponse, StreamingResponse
 import uvicorn
+from dotenv import load_dotenv
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse, StreamingResponse
 
 from normalizer import NormalizeResult, normalize_request
-from telemetry import RequestLog, Telemetry, model_prices
+from telemetry import Telemetry
 
 ROOT = Path(__file__).resolve().parent
 load_dotenv(ROOT / ".env")
 
-HOP_REQ = {
-    "host",
-    "content-length",
-    "connection",
-    "transfer-encoding",
-    "accept-encoding",
-    "keep-alive",
-    "proxy-connection",
-    "te",
-    "trailer",
-    "upgrade",
-}
-HOP_RES = {
-    "content-encoding",
-    "content-length",
-    "connection",
-    "transfer-encoding",
-    "keep-alive",
-    "proxy-connection",
-    "te",
-    "trailer",
-    "upgrade",
+# Groq and OpenRouter both speak OpenAI's /chat/completions protocol.
+PROVIDERS = {
+    "groq": {
+        "base_url": "https://api.groq.com/openai/v1",
+        "key_env": "GROQ_API_KEY",
+        "default_model": "llama-3.3-70b-versatile",
+    },
+    "openrouter": {
+        "base_url": "https://openrouter.ai/api/v1",
+        "key_env": "OPENROUTER_API_KEY",
+        "default_model": "openrouter/free",
+    },
 }
 
+# In-memory map of model -> (prefix_hash, last_input_tokens).
+# Used only when the upstream response has no cached_tokens field.
+_prefix_memory: dict[str, tuple[str, int]] = {}
 
-class Config:
-    host: str = os.getenv("PROXY_HOST", "127.0.0.1")
-    port: int = int(os.getenv("PROXY_PORT", "8080"))
-    target: str = os.getenv("PROXY_TARGET", "https://api.anthropic.com")
-    db: Path = ROOT / os.getenv("TELEMETRY_DB", "telemetry.db")
-    auto_cache: bool = os.getenv("AUTO_CACHE_CONTROL", "true").lower() in {
-        "1",
-        "true",
-        "yes",
-        "on",
+
+def env(name: str, default: str = "") -> str:
+    return os.getenv(name, default).strip()
+
+
+class Settings:
+    """Runtime config, filled from .env and optional CLI flags.
+
+    ``auto`` (default) sends fast Llama traffic to Groq and ``:free`` /
+    ``org/model`` ids to OpenRouter. Pin ``groq`` or ``openrouter`` to force one.
+    """
+
+    host: str = env("PROXY_HOST", "127.0.0.1")
+    port: int = int(env("PROXY_PORT", "8080") or "8080")
+    provider: str = env("PROXY_PROVIDER", "auto").lower()
+    db: Path = ROOT / (env("TELEMETRY_DB", "telemetry.db") or "telemetry.db")
+
+
+def provider_key(provider: str) -> str:
+    return env(PROVIDERS[provider]["key_env"])
+
+
+def provider_url(provider: str) -> str:
+    override = env("PROXY_TARGET")
+    if override and settings.provider == provider:
+        return override.rstrip("/") + "/chat/completions"
+    return PROVIDERS[provider]["base_url"].rstrip("/") + "/chat/completions"
+
+
+def headers_for(provider: str) -> dict[str, str]:
+    headers = {
+        "authorization": f"Bearer {provider_key(provider)}",
+        "content-type": "application/json",
     }
-    anthropic_api_key: str = os.getenv("ANTHROPIC_API_KEY", "")
-    openai_api_key: str = os.getenv("OPENAI_API_KEY", "")
-
-
-config = Config()
-
-
-def _bool_flag(value: str) -> bool:
-    return value.lower() in {"1", "true", "yes", "on"}
-
-
-def resolve_path(full_path: str) -> str:
-    path = full_path.lstrip("/")
-    if path.startswith("v1/v1/"):
-        path = path[3:]
-    return path
-
-
-def upstream_url(path: str) -> str:
-    base = config.target.rstrip("/") + "/"
-    return urljoin(base, path)
-
-
-def filter_request_headers(request: Request) -> dict[str, str]:
-    headers: dict[str, str] = {}
-    for key, value in request.headers.items():
-        if key.lower() in HOP_REQ:
-            continue
-        headers[key] = value
-    if "x-api-key" not in {k.lower() for k in headers} and config.anthropic_api_key:
-        headers["x-api-key"] = config.anthropic_api_key
-    if "authorization" not in {k.lower() for k in headers} and config.openai_api_key:
-        headers["authorization"] = f"Bearer {config.openai_api_key}"
+    if provider == "openrouter":
+        headers["HTTP-Referer"] = "http://localhost:8080"
+        headers["X-Title"] = "dECODED Proxy"
     return headers
 
 
-def filter_response_headers(headers: httpx.Headers) -> dict[str, str]:
-    return {k: v for k, v in headers.items() if k.lower() not in HOP_RES}
+def pick_provider(requested_model: str) -> str:
+    """Choose Groq or OpenRouter for this request."""
+    if settings.provider in PROVIDERS:
+        return settings.provider
+    name = (requested_model or "").strip()
+    if "/" in name or name.endswith(":free"):
+        return "openrouter"
+    return "groq"
 
 
-def parse_usage(payload: dict[str, Any]) -> dict[str, int]:
+def model_for(provider: str, requested: str) -> str:
+    """Map Claude/GPT names onto a model the chosen provider actually serves."""
+    name = (requested or "").strip()
+    default = env("DEFAULT_MODEL") or PROVIDERS[provider]["default_model"]
+    if provider == "openrouter":
+        if "/" in name or name.endswith(":free"):
+            return name
+        if name.lower().startswith("llama"):
+            return "openrouter/free"
+        return default
+    lowered = name.lower()
+    if lowered.startswith(("llama", "deepseek", "mixtral", "gemma", "qwen", "mistral", "compound")):
+        return name
+    return default
+
+
+settings = Settings()
+
+
+def log(message: str) -> None:
+    print(f"[dECODED Proxy] {message}", flush=True)
+
+
+def extract_usage(payload: dict[str, Any]) -> tuple[int, int]:
+    """Return (input_tokens, cached_tokens) from an OpenAI-style body."""
     usage = payload.get("usage") or {}
-    if not usage and isinstance(payload.get("message"), dict):
-        usage = payload["message"].get("usage") or {}
+    input_tokens = int(usage.get("prompt_tokens") or usage.get("input_tokens") or 0)
+    details = usage.get("prompt_tokens_details") if isinstance(usage.get("prompt_tokens_details"), dict) else {}
+    cached_tokens = int(
+        details.get("cached_tokens")
+        or usage.get("cached_tokens")
+        or usage.get("cache_read_input_tokens")
+        or 0
+    )
+    return input_tokens, cached_tokens
+
+
+def estimate_cached_tokens(
+    *,
+    model: str,
+    prefix: str,
+    input_tokens: int,
+    provider_cached: int,
+) -> int:
+    """Prefer the provider's cache counter; otherwise estimate from a matching prefix."""
+    if provider_cached > 0:
+        cached = provider_cached
+    else:
+        previous = _prefix_memory.get(model)
+        if previous and previous[0] == prefix and input_tokens > 0:
+            cached = min(previous[1], input_tokens)
+        else:
+            cached = 0
+    _prefix_memory[model] = (prefix, input_tokens)
+    return cached
+
+
+def print_summary(model: str, input_tokens: int, cached_tokens: int, latency_ms: int) -> None:
+    hit = (cached_tokens / input_tokens * 100) if input_tokens else 0.0
+    log(
+        f"Model: {model} | "
+        f"Input Tokens: {input_tokens:,} | "
+        f"Cached Tokens: {cached_tokens:,} ({hit:.1f}% Hit) | "
+        f"Latency: {latency_ms}ms"
+    )
+
+
+def record_turn(
+    telemetry: Telemetry,
+    *,
+    model: str,
+    prefix: str,
+    input_tokens: int,
+    provider_cached: int,
+    started: float,
+) -> None:
+    latency_ms = int((time.perf_counter() - started) * 1000)
+    cached_tokens = estimate_cached_tokens(
+        model=model,
+        prefix=prefix,
+        input_tokens=input_tokens,
+        provider_cached=provider_cached,
+    )
+    telemetry.log(
+        model=model,
+        input_tokens=input_tokens,
+        cached_tokens=cached_tokens,
+        latency_ms=latency_ms,
+    )
+    print_summary(model, input_tokens, cached_tokens, latency_ms)
+
+
+# --- Anthropic request  ->  OpenAI chat.completions -----------------------
+
+
+def _text_from_blocks(content: Any) -> str:
+    if content is None:
+        return ""
+    if isinstance(content, str):
+        return content
+    if not isinstance(content, list):
+        return str(content)
+    parts = []
+    for block in content:
+        if isinstance(block, dict) and block.get("type") == "text":
+            parts.append(block.get("text") or "")
+        elif isinstance(block, str):
+            parts.append(block)
+    return "\n".join(parts)
+
+
+def anthropic_to_openai(body: dict[str, Any]) -> dict[str, Any]:
+    """Translate POST /v1/messages into Groq/OpenRouter's OpenAI schema."""
+    messages: list[dict[str, Any]] = []
+
+    system = body.get("system")
+    if isinstance(system, str) and system:
+        messages.append({"role": "system", "content": system})
+    elif isinstance(system, list):
+        text = _text_from_blocks(system)
+        if text:
+            messages.append({"role": "system", "content": text})
+
+    for message in body.get("messages") or []:
+        if not isinstance(message, dict):
+            continue
+        messages.extend(_convert_anthropic_message(message))
+
+    openai_body: dict[str, Any] = {
+        "model": body.get("model"),
+        "messages": messages,
+        "stream": bool(body.get("stream")),
+        "max_tokens": int(body.get("max_tokens") or body.get("max_completion_tokens") or 4096),
+    }
+    for key in ("temperature", "top_p", "stop"):
+        if key in body:
+            openai_body[key] = body[key]
+
+    tools = body.get("tools")
+    if isinstance(tools, list) and tools:
+        openai_body["tools"] = [_convert_tool(tool) for tool in tools if isinstance(tool, dict)]
+
+    tool_choice = body.get("tool_choice")
+    if isinstance(tool_choice, str):
+        openai_body["tool_choice"] = tool_choice
+    elif isinstance(tool_choice, dict):
+        choice_type = tool_choice.get("type")
+        if choice_type in {"auto", "any"}:
+            openai_body["tool_choice"] = "auto" if choice_type == "auto" else "required"
+        elif choice_type == "tool" and tool_choice.get("name"):
+            openai_body["tool_choice"] = {
+                "type": "function",
+                "function": {"name": tool_choice["name"]},
+            }
+
+    return openai_body
+
+
+def _convert_tool(tool: dict[str, Any]) -> dict[str, Any]:
+    if tool.get("type") == "function" and isinstance(tool.get("function"), dict):
+        return tool
     return {
-        "input_tokens": int(usage.get("input_tokens") or 0),
-        "output_tokens": int(usage.get("output_tokens") or 0),
-        "cache_read_tokens": int(usage.get("cache_read_input_tokens") or 0),
-        "cache_write_tokens": int(usage.get("cache_creation_input_tokens") or 0),
+        "type": "function",
+        "function": {
+            "name": tool.get("name"),
+            "description": tool.get("description") or "",
+            "parameters": tool.get("input_schema")
+            or tool.get("parameters")
+            or {"type": "object", "properties": {}},
+        },
     }
 
 
-class SseUsageTap:
+def _convert_anthropic_message(message: dict[str, Any]) -> list[dict[str, Any]]:
+    role = message.get("role") or "user"
+    content = message.get("content")
+    if not isinstance(content, list):
+        return [{"role": role, "content": content}]
+
+    converted: list[dict[str, Any]] = []
+    text_parts: list[str] = []
+    tool_calls: list[dict[str, Any]] = []
+
+    for block in content:
+        if not isinstance(block, dict):
+            continue
+        block_type = block.get("type")
+        if block_type == "text":
+            text_parts.append(block.get("text") or "")
+        elif block_type == "tool_use":
+            tool_calls.append(
+                {
+                    "id": block.get("id") or block.get("name"),
+                    "type": "function",
+                    "function": {
+                        "name": block.get("name"),
+                        "arguments": json.dumps(block.get("input") or {}, separators=(",", ":")),
+                    },
+                }
+            )
+        elif block_type == "tool_result":
+            result = block.get("content")
+            converted.append(
+                {
+                    "role": "tool",
+                    "tool_call_id": block.get("tool_use_id"),
+                    "content": result if isinstance(result, str) else json.dumps(result),
+                }
+            )
+
+    if tool_calls:
+        converted.append(
+            {
+                "role": "assistant",
+                "content": "\n".join(text_parts) or None,
+                "tool_calls": tool_calls,
+            }
+        )
+    elif text_parts:
+        converted.append({"role": role, "content": "\n".join(text_parts)})
+
+    return converted
+
+
+# --- OpenAI chat.completions  ->  Anthropic response ----------------------
+
+
+def openai_to_anthropic(payload: dict[str, Any], model: str) -> dict[str, Any]:
+    if payload.get("error"):
+        error = payload["error"]
+        message = error.get("message") if isinstance(error, dict) else str(error)
+        return {"type": "error", "error": {"type": "api_error", "message": message}}
+
+    choice = (payload.get("choices") or [{}])[0]
+    message = choice.get("message") or {}
+    content: list[dict[str, Any]] = []
+
+    text = message.get("content") or ""
+    if text:
+        content.append({"type": "text", "text": text})
+
+    for tool_call in message.get("tool_calls") or []:
+        function = tool_call.get("function") or {}
+        try:
+            arguments = json.loads(function.get("arguments") or "{}")
+        except json.JSONDecodeError:
+            arguments = {"_raw": function.get("arguments")}
+        content.append(
+            {
+                "type": "tool_use",
+                "id": tool_call.get("id"),
+                "name": function.get("name"),
+                "input": arguments,
+            }
+        )
+
+    finish = choice.get("finish_reason")
+    stop_reason = {"stop": "end_turn", "length": "max_tokens", "tool_calls": "tool_use"}.get(
+        finish, "end_turn"
+    )
+    input_tokens, _cached = extract_usage(payload)
+    usage = payload.get("usage") or {}
+
+    return {
+        "id": payload.get("id") or "msg_decodedd",
+        "type": "message",
+        "role": "assistant",
+        "model": model,
+        "content": content or [{"type": "text", "text": ""}],
+        "stop_reason": stop_reason,
+        "stop_sequence": None,
+        "usage": {
+            "input_tokens": input_tokens,
+            "output_tokens": int(usage.get("completion_tokens") or usage.get("output_tokens") or 0),
+        },
+    }
+
+
+def sse(event: str, data: dict[str, Any]) -> bytes:
+    return f"event: {event}\ndata: {json.dumps(data)}\n\n".encode("utf-8")
+
+
+class AnthropicStream:
+    """Turn OpenAI SSE chunks into Anthropic ``message_*`` events."""
+
+    def __init__(self, model: str) -> None:
+        self.model = model
+        self.buf = ""
+        self.started = False
+        self.text_open = False
+        self.usage: dict[str, int] = {}
+        self.tool_calls: dict[int, dict[str, str]] = {}
+
+    def feed(self, chunk: bytes) -> list[bytes]:
+        frames: list[bytes] = []
+        self.buf += chunk.decode("utf-8", errors="ignore")
+        while "\n\n" in self.buf:
+            raw, self.buf = self.buf.split("\n\n", 1)
+            frames.extend(self._handle_frame(raw))
+        return frames
+
+    def finish(self) -> list[bytes]:
+        frames: list[bytes] = []
+        if self.text_open:
+            frames.append(sse("content_block_stop", {"type": "content_block_stop", "index": 0}))
+            self.text_open = False
+        next_index = 1 if self.started else 0
+        for offset, tool in enumerate(self.tool_calls.values()):
+            index = next_index + offset
+            try:
+                tool_input = json.loads(tool.get("arguments") or "{}")
+            except json.JSONDecodeError:
+                tool_input = {"_raw": tool.get("arguments")}
+            frames.append(
+                sse(
+                    "content_block_start",
+                    {
+                        "type": "content_block_start",
+                        "index": index,
+                        "content_block": {
+                            "type": "tool_use",
+                            "id": tool.get("id"),
+                            "name": tool.get("name"),
+                            "input": tool_input,
+                        },
+                    },
+                )
+            )
+            frames.append(sse("content_block_stop", {"type": "content_block_stop", "index": index}))
+        if self.started:
+            frames.append(
+                sse(
+                    "message_delta",
+                    {
+                        "type": "message_delta",
+                        "delta": {"stop_reason": "tool_use" if self.tool_calls else "end_turn"},
+                        "usage": {"output_tokens": int(self.usage.get("completion_tokens") or 0)},
+                    },
+                )
+            )
+            frames.append(sse("message_stop", {"type": "message_stop"}))
+        return frames
+
+    def _handle_frame(self, raw: str) -> list[bytes]:
+        data_lines = [line[5:].lstrip() for line in raw.split("\n") if line.startswith("data:")]
+        if not data_lines:
+            return []
+        payload = "".join(data_lines).strip()
+        if not payload or payload == "[DONE]":
+            return []
+        try:
+            obj = json.loads(payload)
+        except json.JSONDecodeError:
+            return []
+        if not isinstance(obj, dict):
+            return []
+
+        if obj.get("usage"):
+            self.usage = obj["usage"]
+
+        choice = (obj.get("choices") or [{}])[0]
+        delta = choice.get("delta") or {}
+        frames: list[bytes] = []
+
+        if not self.started:
+            self.started = True
+            frames.append(
+                sse(
+                    "message_start",
+                    {
+                        "type": "message_start",
+                        "message": {
+                            "id": obj.get("id") or "msg_decodedd",
+                            "type": "message",
+                            "role": "assistant",
+                            "content": [],
+                            "model": self.model,
+                            "stop_reason": None,
+                            "usage": {"input_tokens": 0, "output_tokens": 0},
+                        },
+                    },
+                )
+            )
+
+        text = delta.get("content")
+        if text:
+            if not self.text_open:
+                self.text_open = True
+                frames.append(
+                    sse(
+                        "content_block_start",
+                        {
+                            "type": "content_block_start",
+                            "index": 0,
+                            "content_block": {"type": "text", "text": ""},
+                        },
+                    )
+                )
+            frames.append(
+                sse(
+                    "content_block_delta",
+                    {
+                        "type": "content_block_delta",
+                        "index": 0,
+                        "delta": {"type": "text_delta", "text": text},
+                    },
+                )
+            )
+
+        for tool_delta in delta.get("tool_calls") or []:
+            index = int(tool_delta.get("index") or 0)
+            slot = self.tool_calls.setdefault(index, {"id": "", "name": "", "arguments": ""})
+            if tool_delta.get("id"):
+                slot["id"] = tool_delta["id"]
+            function = tool_delta.get("function") or {}
+            if function.get("name"):
+                slot["name"] = function["name"]
+            if function.get("arguments"):
+                slot["arguments"] += function["arguments"]
+
+        return frames
+
+
+class OpenAIUsageTap:
+    """Pull ``usage`` out of an OpenAI SSE stream without changing the bytes."""
+
     def __init__(self) -> None:
-        self._buf = ""
-        self.usage: dict[str, int] = {
-            "input_tokens": 0,
-            "output_tokens": 0,
-            "cache_read_tokens": 0,
-            "cache_write_tokens": 0,
-        }
+        self.buf = ""
+        self.input_tokens = 0
+        self.cached_tokens = 0
 
     def feed(self, chunk: bytes) -> None:
-        self._buf += chunk.decode("utf-8", errors="ignore")
-        while "\n\n" in self._buf:
-            event, self._buf = self._buf.split("\n\n", 1)
-            self._parse_event(event)
-
-    def _parse_event(self, event: str) -> None:
-        data_lines = [
-            line[5:].lstrip() for line in event.split("\n") if line.startswith("data:")
-        ]
-        if not data_lines:
-            return
-        raw = "".join(data_lines).strip()
-        if not raw or raw == "[DONE]":
-            return
-        try:
-            obj = json.loads(raw)
-        except json.JSONDecodeError:
-            return
-        if not isinstance(obj, dict):
-            return
-        kind = obj.get("type")
-        if kind == "message_start":
-            message = obj.get("message") or {}
-            if isinstance(message, dict):
-                self._merge(parse_usage(message))
-        elif kind in {"message_delta", "message_stop"}:
-            self._merge(parse_usage(obj))
-
-    def _merge(self, usage: dict[str, int]) -> None:
-        for key, value in usage.items():
-            if value:
-                self.usage[key] = value
+        self.buf += chunk.decode("utf-8", errors="ignore")
+        while "\n\n" in self.buf:
+            raw, self.buf = self.buf.split("\n\n", 1)
+            data_lines = [line[5:].lstrip() for line in raw.split("\n") if line.startswith("data:")]
+            payload = "".join(data_lines).strip()
+            if not payload or payload == "[DONE]":
+                continue
+            try:
+                obj = json.loads(payload)
+            except json.JSONDecodeError:
+                continue
+            if isinstance(obj, dict) and obj.get("usage"):
+                self.input_tokens, self.cached_tokens = extract_usage(obj)
 
 
-def log_line(tag: str, message: str) -> None:
-    print(f"[{tag}] {message}", flush=True)
-
-
-def emit_turn(
-    *,
-    path: str,
-    method: str,
-    result: NormalizeResult | None,
-    matched: bool,
-    status_code: int,
-    usage: dict[str, int],
-    stats: dict[str, Any],
-) -> None:
-    model = result.model if result else ""
-    log_line("intercept", f"{method} /{path} - model: {model or 'unknown'}")
-    if result:
-        match_label = (
-            "Prefix hash matched (byte-exact)"
-            if matched
-            else f"Prefix hash miss ({result.prefix_hash})"
-        )
-        log_line(
-            "prefix-align",
-            f"Sorted {result.tool_count} tool schemas -> {match_label}",
-        )
-    log_line(
-        "upstream",
-        f"Response {status_code} | tokens: "
-        f"{{ input: {usage['input_tokens']}, "
-        f"cache_read: {usage['cache_read_tokens']}, "
-        f"cache_write: {usage['cache_write_tokens']} }}",
-    )
-    hit_pct = stats["cache_hit_rate"] * 100
-    input_p, _, read_p, _ = model_prices(model)
-    discount = (1 - read_p / input_p) * 100 if input_p else 0
-    log_line(
-        "stats",
-        f"Cache Hit Rate: {hit_pct:.1f}% | "
-        f"Turn Savings: ${stats['savings_usd']:.3f} "
-        f"({discount:.0f}% off cached tokens)",
-    )
-
-
-def persist(
-    telemetry: Telemetry,
-    *,
-    request: Request,
-    path: str,
-    result: NormalizeResult | None,
-    matched: bool,
-    status_code: int,
-    usage: dict[str, int],
-    started: float,
-) -> dict[str, Any]:
-    entry = RequestLog(
-        method=request.method,
-        path=f"/{path}",
-        model=result.model if result else "",
-        tool_count=result.tool_count if result else 0,
-        tools_sorted=result.tools_sorted if result else 0,
-        prefix_hash=result.prefix_hash if result else "",
-        prefix_matched=int(matched),
-        status_code=status_code,
-        duration_ms=int((time.perf_counter() - started) * 1000),
-        **usage,
-    )
-    stats = telemetry.log(entry)
-    emit_turn(
-        path=path,
-        method=request.method,
-        result=result,
-        matched=matched,
-        status_code=status_code,
-        usage=usage,
-        stats=stats,
-    )
-    return stats
+# --- FastAPI app ----------------------------------------------------------
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    if sys.stdout.encoding and sys.stdout.encoding.lower().replace("-", "") != "utf8":
+    if sys.stdout.encoding and "utf" not in sys.stdout.encoding.lower():
         try:
             sys.stdout.reconfigure(encoding="utf-8", errors="replace")
         except (AttributeError, OSError):
             pass
 
-    db_path = config.db if config.db.is_absolute() else ROOT / config.db
-    telemetry = Telemetry(db_path)
+    groq_ok = bool(provider_key("groq"))
+    openrouter_ok = bool(provider_key("openrouter"))
+    if settings.provider == "auto":
+        if not groq_ok and not openrouter_ok:
+            log("Missing GROQ_API_KEY and OPENROUTER_API_KEY in .env")
+    elif not provider_key(settings.provider):
+        log(f"Missing {PROVIDERS[settings.provider]['key_env']} in .env")
+
+    telemetry = Telemetry(settings.db)
     timeout = httpx.Timeout(connect=10.0, read=None, write=60.0, pool=10.0)
     async with httpx.AsyncClient(timeout=timeout, follow_redirects=False) as client:
         app.state.http = client
         app.state.telemetry = telemetry
-        log_line("proxy", f"Listening on http://{config.host}:{config.port}")
-        log_line("proxy", f"Upstream {config.target}")
+        log(f"Listening on http://{settings.host}:{settings.port}")
+        log(
+            f"Provider: {settings.provider} | "
+            f"Groq: {'ready' if groq_ok else 'no key'} | "
+            f"OpenRouter: {'ready' if openrouter_ok else 'no key'}"
+        )
         yield
     telemetry.close()
 
 
-app = FastAPI(title="decodedd-proxy", docs_url=None, redoc_url=None, lifespan=lifespan)
+app = FastAPI(title="dECODED Proxy", docs_url=None, redoc_url=None, lifespan=lifespan)
 
 
+@app.get("/")
+@app.get("/health")
 @app.get("/_decodedd/health")
-async def health() -> dict[str, str]:
-    return {"service": "decodedd-proxy", "status": "ok"}
+async def health() -> dict[str, Any]:
+    return {
+        "service": "decodedd-proxy",
+        "status": "ok",
+        "provider": settings.provider,
+        "groq": bool(provider_key("groq")),
+        "openrouter": bool(provider_key("openrouter")),
+    }
 
 
 @app.get("/_decodedd/stats")
@@ -275,156 +600,193 @@ async def stats(request: Request) -> dict[str, Any]:
     return request.app.state.telemetry.summary()
 
 
-@app.api_route("/", methods=["GET", "HEAD"])
-async def root() -> dict[str, str]:
-    return {"service": "decodedd-proxy", "status": "ok"}
+@app.post("/v1/chat/completions")
+@app.post("/chat/completions")
+async def chat_completions(request: Request):
+    return await handle_llm_request(request, style="openai")
 
 
-@app.api_route(
-    "/{full_path:path}",
-    methods=["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"],
-)
-async def proxy(full_path: str, request: Request) -> Response:
-    path = resolve_path(full_path)
-    url = upstream_url(path)
-    started = time.perf_counter()
-    telemetry: Telemetry = request.app.state.telemetry
-    client: httpx.AsyncClient = request.app.state.http
+@app.post("/v1/messages")
+@app.post("/messages")
+async def messages(request: Request):
+    return await handle_llm_request(request, style="anthropic")
 
-    raw_body = await request.body()
-    result: NormalizeResult | None = None
-    matched = False
-    outbound = raw_body
-    headers = filter_request_headers(request)
 
-    if raw_body and request.headers.get("content-type", "").startswith("application/json"):
-        try:
-            payload = json.loads(raw_body)
-        except json.JSONDecodeError:
-            payload = None
-        if isinstance(payload, dict) and (
-            "messages" in payload or "tools" in payload or "system" in payload
-        ):
-            result = normalize_request(payload, auto_cache=config.auto_cache)
-            outbound = result.raw
-            headers["content-type"] = "application/json"
-            if result.model:
-                previous = telemetry.last_prefix_hash(result.model)
-                matched = bool(previous and previous == result.prefix_hash)
-
+async def send_upstream(
+    client: httpx.AsyncClient,
+    provider: str,
+    payload: dict[str, Any],
+) -> httpx.Response | JSONResponse:
+    if not provider_key(provider):
+        return JSONResponse(
+            {"error": f"Set {PROVIDERS[provider]['key_env']} in cli-proxy/.env"},
+            status_code=500,
+        )
     try:
-        upstream = await client.send(
+        return await client.send(
             client.build_request(
-                request.method,
-                url,
-                headers=headers,
-                content=outbound or None,
-                params=request.query_params,
+                "POST",
+                provider_url(provider),
+                headers=headers_for(provider),
+                json=payload,
             ),
             stream=True,
         )
     except httpx.RequestError as exc:
-        log_line("upstream", f"Error contacting {url}: {exc}")
-        return JSONResponse(
-            {"error": "upstream_unreachable", "detail": str(exc)},
-            status_code=502,
-        )
+        log(f"{provider} error: {exc}")
+        return JSONResponse({"error": "upstream_unreachable", "detail": str(exc)}, status_code=502)
 
-    response_headers = filter_response_headers(upstream.headers)
-    content_type = upstream.headers.get("content-type", "")
-    is_sse = "text/event-stream" in content_type
 
-    if is_sse:
-        tap = SseUsageTap()
+async def handle_llm_request(request: Request, *, style: str):
+    """Shared path for both endpoints: normalize → (translate) → forward → log."""
+    started = time.perf_counter()
+    try:
+        body = await request.json()
+    except json.JSONDecodeError:
+        return JSONResponse({"error": "invalid_json"}, status_code=400)
+    if not isinstance(body, dict):
+        return JSONResponse({"error": "body_must_be_object"}, status_code=400)
 
-        async def stream():
-            try:
-                async for chunk in upstream.aiter_bytes():
-                    tap.feed(chunk)
-                    yield chunk
-            finally:
-                await upstream.aclose()
-                if result is not None:
-                    persist(
-                        telemetry,
-                        request=request,
-                        path=path,
-                        result=result,
-                        matched=matched,
-                        status_code=upstream.status_code,
-                        usage=tap.usage,
-                        started=started,
-                    )
+    normalized: NormalizeResult = normalize_request(body)
+    payload = dict(normalized.body)
 
-        return StreamingResponse(
-            stream(),
-            status_code=upstream.status_code,
-            headers=response_headers,
-            media_type=content_type,
-        )
+    if style == "anthropic":
+        payload = anthropic_to_openai(payload)
 
-    body = await upstream.aread()
-    await upstream.aclose()
-    usage = {
-        "input_tokens": 0,
-        "output_tokens": 0,
-        "cache_read_tokens": 0,
-        "cache_write_tokens": 0,
-    }
-    if "application/json" in content_type:
-        try:
-            parsed = json.loads(body)
-        except json.JSONDecodeError:
-            parsed = None
-        if isinstance(parsed, dict):
-            usage = parse_usage(parsed)
+    requested_model = str(payload.get("model") or "")
+    provider = pick_provider(requested_model)
+    payload["model"] = model_for(provider, requested_model)
+    stream = bool(payload.get("stream"))
+    if stream:
+        payload["stream_options"] = {"include_usage": True}
 
-    if result is not None:
-        persist(
-            telemetry,
-            request=request,
-            path=path,
-            result=result,
-            matched=matched,
-            status_code=upstream.status_code,
-            usage=usage,
+    client: httpx.AsyncClient = request.app.state.http
+    telemetry: Telemetry = request.app.state.telemetry
+
+    upstream = await send_upstream(client, provider, payload)
+    if isinstance(upstream, JSONResponse):
+        return upstream
+
+    # auto mode: if Groq rejects the call, retry once on OpenRouter.
+    if (
+        settings.provider == "auto"
+        and provider == "groq"
+        and upstream.status_code >= 400
+        and provider_key("openrouter")
+    ):
+        status = upstream.status_code
+        await upstream.aclose()
+        provider = "openrouter"
+        payload["model"] = model_for(provider, requested_model)
+        log(f"Groq returned {status}; retrying OpenRouter ({payload['model']})")
+        upstream = await send_upstream(client, provider, payload)
+        if isinstance(upstream, JSONResponse):
+            return upstream
+
+    log(f"Upstream: {provider} model={payload['model']}")
+    model = str(payload.get("model") or "unknown")
+    content_type = upstream.headers.get("content-type") or ""
+    if stream and "text/event-stream" in content_type:
+        return await _stream_response(
+            upstream,
+            telemetry=telemetry,
+            style=style,
+            model=model,
+            prefix=normalized.prefix_hash,
             started=started,
         )
-    return Response(
-        content=body,
+
+    raw = await upstream.aread()
+    await upstream.aclose()
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError:
+        return JSONResponse({"error": "upstream_not_json", "body": raw.decode("utf-8", "replace")}, status_code=502)
+
+    input_tokens, provider_cached = extract_usage(data)
+    record_turn(
+        telemetry,
+        model=model,
+        prefix=normalized.prefix_hash,
+        input_tokens=input_tokens,
+        provider_cached=provider_cached,
+        started=started,
+    )
+
+    if style == "anthropic":
+        data = openai_to_anthropic(data, model)
+    return JSONResponse(data, status_code=upstream.status_code)
+
+
+async def _stream_response(
+    upstream: httpx.Response,
+    *,
+    telemetry: Telemetry,
+    style: str,
+    model: str,
+    prefix: str,
+    started: float,
+) -> StreamingResponse:
+    translator = AnthropicStream(model) if style == "anthropic" else None
+    tap = OpenAIUsageTap()
+
+    async def generate() -> AsyncIterator[bytes]:
+        try:
+            async for chunk in upstream.aiter_bytes():
+                tap.feed(chunk)
+                if translator is None:
+                    yield chunk
+                else:
+                    for frame in translator.feed(chunk):
+                        yield frame
+            if translator is not None:
+                for frame in translator.finish():
+                    yield frame
+        finally:
+            await upstream.aclose()
+            input_tokens = tap.input_tokens
+            provider_cached = tap.cached_tokens
+            if translator is not None:
+                input_tokens = int(
+                    (translator.usage or {}).get("prompt_tokens")
+                    or (translator.usage or {}).get("input_tokens")
+                    or input_tokens
+                )
+                details = (translator.usage or {}).get("prompt_tokens_details") or {}
+                if isinstance(details, dict) and details.get("cached_tokens"):
+                    provider_cached = int(details["cached_tokens"])
+            record_turn(
+                telemetry,
+                model=model,
+                prefix=prefix,
+                input_tokens=input_tokens,
+                provider_cached=provider_cached,
+                started=started,
+            )
+
+    return StreamingResponse(
+        generate(),
         status_code=upstream.status_code,
-        headers=response_headers,
-        media_type=content_type or None,
+        media_type="text/event-stream",
     )
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="decodedd local prefix-cache proxy")
-    parser.add_argument("--host", default=config.host, help="Bind host (default 127.0.0.1)")
-    parser.add_argument("--port", type=int, default=config.port, help="Bind port (default 8080)")
+    parser = argparse.ArgumentParser(description="dECODED local LLM proxy")
+    parser.add_argument("--host", default=settings.host)
+    parser.add_argument("--port", type=int, default=settings.port)
     parser.add_argument(
-        "--target",
-        default=config.target,
-        help="Upstream API base URL (default https://api.anthropic.com)",
-    )
-    parser.add_argument(
-        "--db",
-        default=str(config.db),
-        help="SQLite telemetry path (default telemetry.db)",
-    )
-    parser.add_argument(
-        "--auto-cache-control",
-        default=str(config.auto_cache).lower(),
-        help="Inject cache_control breakpoints (true/false)",
+        "--provider",
+        choices=["auto", "groq", "openrouter"],
+        default=settings.provider,
+        help="auto uses Groq first and OpenRouter for :free / org/model ids",
     )
     return parser.parse_args()
 
 
 if __name__ == "__main__":
     args = parse_args()
-    config.host = args.host
-    config.port = args.port
-    config.target = args.target
-    config.db = Path(args.db)
-    config.auto_cache = _bool_flag(str(args.auto_cache_control))
-    uvicorn.run(app, host=config.host, port=config.port, log_level="warning")
+    settings.host = args.host
+    settings.port = args.port
+    settings.provider = args.provider
+    uvicorn.run(app, host=settings.host, port=settings.port, log_level="warning")

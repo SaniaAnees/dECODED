@@ -1,14 +1,12 @@
-"""Deterministic JSON normalization for byte-exact prompt prefixes.
+"""Deterministic, in-memory JSON normalization.
 
-Anthropic (and other providers) cache on a byte-exact prompt prefix. Agent
-CLIs often reshuffle tool schemas, JSON key order, and cache breakpoints
-between turns, which silently busts the KV cache. This module makes the
-stable prefix identical across turns:
+LLM prompt caches only hit when the *prefix* of a request is byte-exact.
+Agent CLIs often shuffle JSON key order, tool schemas, and the system
+message position between turns. This module makes that prefix stable:
 
-- Recursively sort object keys
-- Sort tool definitions by name
-- Sort JSON Schema ``required`` lists (they are sets)
-- Optionally inject ``cache_control`` on the last tool and the system prompt
+1. Recursively sort every object’s keys alphabetically.
+2. Sort tool definitions by name (and JSON Schema ``required`` lists).
+3. Pin the system prompt at messages index 0.
 """
 
 from __future__ import annotations
@@ -20,77 +18,70 @@ from typing import Any
 
 
 def canonical_dumps(obj: Any) -> str:
+    """Stable JSON: sorted keys, no extra whitespace."""
     return json.dumps(obj, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
 
 
-def _normalize(value: Any, key: str | None = None) -> Any:
+def _sort_value(value: Any, parent_key: str | None = None) -> Any:
+    """Walk the tree. Dict keys are sorted; a few lists are sorted too."""
     if isinstance(value, dict):
-        return {k: _normalize(v, k) for k, v in value.items()}
+        return {key: _sort_value(value[key], key) for key in sorted(value, key=str)}
+
     if isinstance(value, list):
-        items = [_normalize(item, key) for item in value]
-        if key == "tools":
-            return sorted(
-                items,
-                key=lambda tool: (
-                    str(tool.get("name", "")) if isinstance(tool, dict) else str(tool)
-                ),
-            )
-        if key == "required":
+        items = [_sort_value(item, parent_key) for item in value]
+        if parent_key == "tools":
+            return sorted(items, key=_tool_sort_key)
+        if parent_key == "required":
             return sorted(items, key=lambda item: str(item))
         return items
+
     return value
 
 
-def _has_cache_control(value: Any) -> bool:
-    if isinstance(value, dict):
-        if "cache_control" in value:
-            return True
-        return any(_has_cache_control(v) for v in value.values())
-    if isinstance(value, list):
-        return any(_has_cache_control(item) for item in value)
-    return False
+def _tool_sort_key(tool: Any) -> str:
+    if not isinstance(tool, dict):
+        return str(tool)
+    # OpenAI tools nest the name under function; Anthropic puts it on the tool.
+    function = tool.get("function") if isinstance(tool.get("function"), dict) else {}
+    return str(function.get("name") or tool.get("name") or "")
 
 
-def _with_cache_control(block: dict[str, Any]) -> dict[str, Any]:
-    if "cache_control" in block:
-        return block
-    return {**block, "cache_control": {"type": "ephemeral"}}
+def pin_system_prompt(body: dict[str, Any]) -> dict[str, Any]:
+    """Ensure the static system prompt lives at messages[0].
 
-
-def inject_cache_control(body: dict[str, Any]) -> dict[str, Any]:
-    """Add cache breakpoints on the tools prefix and the system prompt."""
-    if _has_cache_control(body):
+    OpenAI-style bodies put system in the messages array. If a client sends
+    it later (or mixed with user turns), we move every ``role=system``
+    message to the front and leave the remaining turns in their original order.
+    """
+    messages = body.get("messages")
+    if not isinstance(messages, list) or not messages:
         return body
 
-    out = dict(body)
-    tools = out.get("tools")
-    if isinstance(tools, list) and tools and isinstance(tools[-1], dict):
-        tools = list(tools)
-        tools[-1] = _with_cache_control(tools[-1])
-        out["tools"] = tools
+    system_msgs = []
+    other_msgs = []
+    for message in messages:
+        if isinstance(message, dict) and message.get("role") == "system":
+            system_msgs.append(message)
+        else:
+            other_msgs.append(message)
 
-    system = out.get("system")
-    if isinstance(system, str) and system:
-        out["system"] = [
-            {
-                "type": "text",
-                "text": system,
-                "cache_control": {"type": "ephemeral"},
-            }
-        ]
-    elif isinstance(system, list) and system and isinstance(system[-1], dict):
-        system = list(system)
-        system[-1] = _with_cache_control(system[-1])
-        out["system"] = system
+    if not system_msgs:
+        return body
 
-    return out
+    pinned = dict(body)
+    pinned["messages"] = system_msgs + other_msgs
+    return pinned
 
 
 def prefix_material(body: dict[str, Any]) -> dict[str, Any]:
-    """The prompt prefix that must stay byte-exact for cache hits."""
+    """The part of the request that must stay identical for a cache hit."""
+    system = body.get("system")
+    messages = body.get("messages") if isinstance(body.get("messages"), list) else []
+    if system is None:
+        system = [m for m in messages if isinstance(m, dict) and m.get("role") == "system"]
     return {
         "model": body.get("model"),
-        "system": body.get("system"),
+        "system": system,
         "tools": body.get("tools"),
     }
 
@@ -106,35 +97,25 @@ class NormalizeResult:
     raw: bytes
     model: str
     tool_count: int
-    tools_sorted: int
     prefix_hash: str
-    cache_control_injected: bool
 
 
-def normalize_request(body: dict[str, Any], *, auto_cache: bool = True) -> NormalizeResult:
-    original_tools = body.get("tools") if isinstance(body.get("tools"), list) else []
-    original_names = [
-        tool.get("name") for tool in original_tools if isinstance(tool, dict)
-    ]
+def normalize_request(body: dict[str, Any], *, auto_cache: bool = False) -> NormalizeResult:
+    """Return a cache-friendly copy of the request body.
 
-    normalized = _normalize(body)
-    injected = False
-    if auto_cache:
-        before = canonical_dumps(normalized)
-        normalized = inject_cache_control(normalized)
-        injected = canonical_dumps(normalized) != before
+    ``auto_cache`` is accepted for older call sites and ignored — Groq and
+    OpenRouter do not use Anthropic ``cache_control`` breakpoints.
+    """
+    del auto_cache
 
+    pinned = pin_system_prompt(body)
+    normalized = _sort_value(pinned)
     tools = normalized.get("tools") if isinstance(normalized.get("tools"), list) else []
-    sorted_names = [tool.get("name") for tool in tools if isinstance(tool, dict)]
-    tools_sorted = int(original_names != sorted_names and bool(original_names))
 
-    raw = canonical_dumps(normalized).encode("utf-8")
     return NormalizeResult(
         body=normalized,
-        raw=raw,
+        raw=canonical_dumps(normalized).encode("utf-8"),
         model=str(normalized.get("model") or ""),
         tool_count=len(tools),
-        tools_sorted=tools_sorted,
         prefix_hash=prefix_hash(normalized),
-        cache_control_injected=injected,
     )
