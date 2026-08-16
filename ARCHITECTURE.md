@@ -24,14 +24,14 @@
 ```text
 decodedd/
 ├── web/          # Next.js UI and API proxy
-└── cli-proxy/    # Local daemon
+└── cli_proxy/    # Local daemon (pip package: decoded)
 ```
 
 ### `web/`
 
 The browser-facing Next.js application. It provides the Gemini-inspired interface, authentication, persistent application data, and API proxy routes.
 
-### `cli-proxy/`
+### `cli_proxy/`
 
 The local daemon responsible for local-first orchestration and context proxying between local resources and the web application.
 

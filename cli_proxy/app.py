@@ -20,15 +20,18 @@ from typing import Any, AsyncIterator
 
 import httpx
 import uvicorn
-from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 
-from normalizer import NormalizeResult, normalize_request
-from telemetry import Telemetry
+from cli_proxy.key_manager import (
+    get_saved_key,
+    load_key_sources,
+    resolve_api_key,
+)
+from cli_proxy.normalizer import NormalizeResult, normalize_request
+from cli_proxy.telemetry import Telemetry
 
-ROOT = Path(__file__).resolve().parent
-load_dotenv(ROOT / ".env")
+load_key_sources()
 
 # Groq and OpenRouter both speak OpenAI's /chat/completions protocol.
 PROVIDERS = {
@@ -49,8 +52,19 @@ PROVIDERS = {
 _prefix_memory: dict[str, tuple[str, int]] = {}
 
 
+PACKAGE_DIR = Path(__file__).resolve().parent
+
+
 def env(name: str, default: str = "") -> str:
     return os.getenv(name, default).strip()
+
+
+def _telemetry_db() -> Path:
+    """Keep the SQLite log next to the package (cli_proxy/telemetry.db)."""
+    raw = env("TELEMETRY_DB")
+    if raw and Path(raw).is_absolute():
+        return Path(raw)
+    return PACKAGE_DIR / (raw or "telemetry.db")
 
 
 class Settings:
@@ -63,11 +77,11 @@ class Settings:
     host: str = env("PROXY_HOST", "127.0.0.1")
     port: int = int(env("PROXY_PORT", "8080") or "8080")
     provider: str = env("PROXY_PROVIDER", "auto").lower()
-    db: Path = ROOT / (env("TELEMETRY_DB", "telemetry.db") or "telemetry.db")
+    db: Path = _telemetry_db()
 
 
 def provider_key(provider: str) -> str:
-    return env(PROVIDERS[provider]["key_env"])
+    return get_saved_key(provider)
 
 
 def provider_url(provider: str) -> str:
@@ -77,14 +91,15 @@ def provider_url(provider: str) -> str:
     return PROVIDERS[provider]["base_url"].rstrip("/") + "/chat/completions"
 
 
-def headers_for(provider: str) -> dict[str, str]:
-    headers = {
-        "authorization": f"Bearer {provider_key(provider)}",
-        "content-type": "application/json",
-    }
+def headers_for(provider: str, request: Request | None = None) -> dict[str, str]:
+    incoming = dict(request.headers) if request is not None else None
+    key, _source = resolve_api_key(provider, incoming)
+    headers = {"content-type": "application/json"}
+    if key:
+        headers["authorization"] = f"Bearer {key}"
     if provider == "openrouter":
         headers["HTTP-Referer"] = "http://localhost:8080"
-        headers["X-Title"] = "dECODED Proxy"
+        headers["X-Title"] = "dECODED"
     return headers
 
 
@@ -118,7 +133,7 @@ settings = Settings()
 
 
 def log(message: str) -> None:
-    print(f"[dECODED Proxy] {message}", flush=True)
+    print(f"[dECODED] {message}", flush=True)
 
 
 def extract_usage(payload: dict[str, Any]) -> tuple[int, int]:
@@ -556,25 +571,18 @@ async def lifespan(app: FastAPI):
         except (AttributeError, OSError):
             pass
 
+    load_key_sources()
     groq_ok = bool(provider_key("groq"))
     openrouter_ok = bool(provider_key("openrouter"))
-    if settings.provider == "auto":
-        if not groq_ok and not openrouter_ok:
-            log("Missing GROQ_API_KEY and OPENROUTER_API_KEY in .env")
-    elif not provider_key(settings.provider):
-        log(f"Missing {PROVIDERS[settings.provider]['key_env']} in .env")
+    if not groq_ok and not openrouter_ok:
+        log("No stored key yet — Cursor/Claude Code Authorization headers will be used")
 
     telemetry = Telemetry(settings.db)
     timeout = httpx.Timeout(connect=10.0, read=None, write=60.0, pool=10.0)
     async with httpx.AsyncClient(timeout=timeout, follow_redirects=False) as client:
         app.state.http = client
         app.state.telemetry = telemetry
-        log(f"Listening on http://{settings.host}:{settings.port}")
-        log(
-            f"Provider: {settings.provider} | "
-            f"Groq: {'ready' if groq_ok else 'no key'} | "
-            f"OpenRouter: {'ready' if openrouter_ok else 'no key'}"
-        )
+        log(f"Listening on http://localhost:{settings.port}")
         yield
     telemetry.close()
 
@@ -616,18 +624,27 @@ async def send_upstream(
     client: httpx.AsyncClient,
     provider: str,
     payload: dict[str, Any],
+    request: Request | None = None,
 ) -> httpx.Response | JSONResponse:
-    if not provider_key(provider):
+    incoming = dict(request.headers) if request is not None else None
+    key, _source = resolve_api_key(provider, incoming)
+    if not key:
         return JSONResponse(
-            {"error": f"Set {PROVIDERS[provider]['key_env']} in cli-proxy/.env"},
-            status_code=500,
+            {
+                "error": "missing_api_key",
+                "detail": (
+                    "Pass an Authorization header from Cursor/Claude Code, "
+                    f"or run: decoded set-key {provider} <key>"
+                ),
+            },
+            status_code=401,
         )
     try:
         return await client.send(
             client.build_request(
                 "POST",
                 provider_url(provider),
-                headers=headers_for(provider),
+                headers=headers_for(provider, request),
                 json=payload,
             ),
             stream=True,
@@ -663,7 +680,7 @@ async def handle_llm_request(request: Request, *, style: str):
     client: httpx.AsyncClient = request.app.state.http
     telemetry: Telemetry = request.app.state.telemetry
 
-    upstream = await send_upstream(client, provider, payload)
+    upstream = await send_upstream(client, provider, payload, request)
     if isinstance(upstream, JSONResponse):
         return upstream
 
@@ -679,7 +696,7 @@ async def handle_llm_request(request: Request, *, style: str):
         provider = "openrouter"
         payload["model"] = model_for(provider, requested_model)
         log(f"Groq returned {status}; retrying OpenRouter ({payload['model']})")
-        upstream = await send_upstream(client, provider, payload)
+        upstream = await send_upstream(client, provider, payload, request)
         if isinstance(upstream, JSONResponse):
             return upstream
 

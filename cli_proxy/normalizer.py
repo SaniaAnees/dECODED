@@ -41,18 +41,12 @@ def _sort_value(value: Any, parent_key: str | None = None) -> Any:
 def _tool_sort_key(tool: Any) -> str:
     if not isinstance(tool, dict):
         return str(tool)
-    # OpenAI tools nest the name under function; Anthropic puts it on the tool.
     function = tool.get("function") if isinstance(tool.get("function"), dict) else {}
     return str(function.get("name") or tool.get("name") or "")
 
 
 def pin_system_prompt(body: dict[str, Any]) -> dict[str, Any]:
-    """Ensure the static system prompt lives at messages[0].
-
-    OpenAI-style bodies put system in the messages array. If a client sends
-    it later (or mixed with user turns), we move every ``role=system``
-    message to the front and leave the remaining turns in their original order.
-    """
+    """Ensure the static system prompt lives at messages[0]."""
     messages = body.get("messages")
     if not isinstance(messages, list) or not messages:
         return body
@@ -101,11 +95,7 @@ class NormalizeResult:
 
 
 def normalize_request(body: dict[str, Any], *, auto_cache: bool = False) -> NormalizeResult:
-    """Return a cache-friendly copy of the request body.
-
-    ``auto_cache`` is accepted for older call sites and ignored — Groq and
-    OpenRouter do not use Anthropic ``cache_control`` breakpoints.
-    """
+    """Return a cache-friendly copy of the request body."""
     del auto_cache
 
     pinned = pin_system_prompt(body)

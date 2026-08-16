@@ -1,0 +1,16 @@
+# Python packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Secrets and local telemetry
+.env
+**/.env
+!.env.example
+*.db
+*.db-journal
