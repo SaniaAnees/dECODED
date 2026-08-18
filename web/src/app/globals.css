@@ -6,6 +6,8 @@
   --border: #22262b;
   --foreground: #e4e4e7;
   --muted: #9ca3af;
+  --heading: #f4f4f5;
+  --accent: #34d399;
 }
 
 @theme inline {
@@ -14,6 +16,8 @@
   --color-border: var(--border);
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
+  --color-heading: var(--heading);
+  --color-accent: var(--accent);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -34,6 +38,25 @@ body {
 }
 
 ::selection {
-  background: rgba(52, 211, 153, 0.15);
+  background: rgba(52, 211, 153, 0.18);
   color: #fff;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
