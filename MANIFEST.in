@@ -1,4 +1,0 @@
-include README.md
-include LICENSE
-include .env.example
-recursive-include cli_proxy *.py

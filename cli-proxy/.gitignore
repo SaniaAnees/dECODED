@@ -1,8 +1,0 @@
-.env
-.venv/
-venv/
-__pycache__/
-*.py[cod]
-*.db
-*.db-journal
-.python-version
