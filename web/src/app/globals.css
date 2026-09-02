@@ -1,25 +1,29 @@
 @import "tailwindcss";
 
+/* Daylight. The hero is a painted sky (public/sky.jpg); the page below is paper.
+   Token names are kept from the earlier dark theme so components need no edits:
+   moon = primary text (deep navy), ink = panel surface, canvas = paper. */
 :root {
-  --canvas: #0b0c0e;
-  --surface: #121316;
-  --border: #22262b;
-  --foreground: #e4e4e7;
-  --muted: #9ca3af;
-  --heading: #f4f4f5;
-  --accent: #34d399;
+  --canvas: #f4f0e8;
+  --ink: #fbf9f4;
+  --moon: #1c2340;
+  --gilt: #b07a2c;
+  --mist: #4e5871;
+  --dusk: #8b93aa;
+  --line: rgba(28, 35, 64, 0.14);
 }
 
 @theme inline {
   --color-canvas: var(--canvas);
-  --color-surface: var(--surface);
-  --color-border: var(--border);
-  --color-foreground: var(--foreground);
-  --color-muted: var(--muted);
-  --color-heading: var(--heading);
-  --color-accent: var(--accent);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-ink: var(--ink);
+  --color-moon: var(--moon);
+  --color-gilt: var(--gilt);
+  --color-mist: var(--mist);
+  --color-dusk: var(--dusk);
+  --color-line: var(--line);
+  --font-sans: var(--font-newsreader);
+  --font-serif: var(--font-newsreader);
+  --font-mono: var(--font-ibm-plex-mono);
 }
 
 * {
@@ -32,19 +36,38 @@ html {
 
 body {
   background: var(--canvas);
-  color: var(--foreground);
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  color: var(--mist);
+  font-family: var(--font-newsreader), "Times New Roman", serif;
   -webkit-font-smoothing: antialiased;
 }
 
 ::selection {
-  background: rgba(52, 211, 153, 0.18);
-  color: #fff;
+  background: rgba(176, 122, 44, 0.25);
+  color: var(--moon);
 }
 
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 1px solid var(--gilt);
   outline-offset: 3px;
+}
+
+.font-serif {
+  font-family: var(--font-newsreader), "Times New Roman", serif;
+}
+
+.font-mono {
+  font-family: var(--font-ibm-plex-mono), ui-monospace, monospace;
+}
+
+.rule {
+  border: none;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(28, 35, 64, 0.22),
+    transparent
+  );
 }
 
 @media (prefers-reduced-motion: reduce) {

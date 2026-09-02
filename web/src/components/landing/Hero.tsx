@@ -1,26 +1,59 @@
-import { BetaForm } from "@/components/landing/BetaForm";
-import { CopyCommand } from "@/components/landing/CopyCommand";
+import Image from "next/image";
 
 export function Hero() {
   return (
-    <section id="hero" className="mx-auto max-w-5xl px-6 pt-16 pb-8 md:pt-24 md:pb-12">
-      <p className="text-sm text-muted">Private beta</p>
+    <section id="hero" className="relative min-h-[92vh] overflow-hidden">
+      <Image
+        src="/sky.jpg"
+        alt=""
+        fill
+        priority
+        sizes="100vw"
+        className="object-cover object-[50%_40%]"
+      />
+      {/* Slight darkening at the top so the header and headline read on the blue. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "linear-gradient(180deg, rgba(16,34,78,0.42) 0%, rgba(16,34,78,0.12) 38%, rgba(16,34,78,0) 60%)",
+        }}
+      />
 
-      <h1 className="mt-5 max-w-3xl text-[2rem] font-semibold leading-[1.15] tracking-tight text-heading md:text-5xl md:leading-[1.12]">
-        <span className="block">10x Faster Agents.</span>
-        <span className="block">70% Cheaper API Bills.</span>
-        <span className="block">Zero Context Loss.</span>
-      </h1>
-
-      <p className="mt-5 max-w-xl text-base leading-relaxed text-muted">
-        Prefix-cached proxy for AI coding agents. Stop context drift and
-        maximize KV-cache hits with a 1-line setup.
-      </p>
-
-      <div className="mt-10 space-y-3">
-        <CopyCommand />
-        <div id="beta" className="scroll-mt-20">
-          <BetaForm />
+      <div className="relative mx-auto flex min-h-[92vh] max-w-3xl flex-col items-center px-6 pt-36 text-center md:px-8 md:pt-44">
+        <p className="font-mono text-[11px] tracking-[0.28em] text-white/80">
+          VOL. I · THIS SEASON
+        </p>
+        <h1
+          className="mt-7 font-serif text-[2.6rem] font-medium leading-[1.14] text-white sm:text-6xl md:text-[4.25rem]"
+          style={{ textShadow: "0 2px 24px rgba(16,34,78,0.35)" }}
+        >
+          Coding agents waste tokens.
+          <span className="mt-3 block font-normal italic text-white/90">
+            We&apos;re building one that doesn&apos;t.
+          </span>
+        </h1>
+        <p
+          className="mt-8 max-w-xl font-serif text-lg leading-relaxed text-white/90 md:text-xl"
+          style={{ textShadow: "0 1px 14px rgba(16,34,78,0.35)" }}
+        >
+          The first layer exists: a local prefix cache and a normalizer. The
+          agent itself is next.
+        </p>
+        <div className="mt-12 flex flex-wrap items-center justify-center gap-4">
+          <a
+            href="#start"
+            className="bg-moon px-6 py-3 font-serif text-[15px] text-white transition-opacity hover:opacity-90"
+          >
+            Join the list
+          </a>
+          <a
+            href="#now"
+            className="border border-white/60 bg-white/10 px-6 py-3 font-serif text-[15px] text-white backdrop-blur-sm transition-colors hover:bg-white/20"
+          >
+            What exists
+          </a>
         </div>
       </div>
     </section>

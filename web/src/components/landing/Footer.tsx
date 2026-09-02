@@ -2,24 +2,28 @@ import { GITHUB_URL } from "@/lib/site";
 
 export function Footer() {
   return (
-    <footer className="border-t border-border">
-      <div className="mx-auto flex max-w-5xl flex-col gap-6 px-6 py-10 sm:flex-row sm:items-center sm:justify-between">
+    <footer>
+      <hr className="rule mx-auto max-w-5xl" />
+      <div className="mx-auto flex max-w-5xl flex-col gap-6 px-6 py-12 md:flex-row md:items-end md:justify-between md:px-8">
         <div>
-          <p className="font-mono text-sm font-medium text-heading">dECODED</p>
-          <p className="mt-1 text-sm text-muted">
-            Prompt cache for coding agents.
+          <p className="font-serif tracking-[0.18em] text-moon">dECODED</p>
+          <p className="mt-2 max-w-sm font-serif italic text-dusk">
+            Fewer tokens. Same work. The rest, in due season.
           </p>
         </div>
-        <div className="flex items-center gap-6 text-sm">
+        <div className="flex items-center gap-8">
           <a
             href={GITHUB_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-muted transition-colors hover:text-heading"
+            className="font-serif text-[15px] text-mist hover:text-moon"
           >
             GitHub
           </a>
-          <p className="text-xs text-muted">© 2026 dECODED</p>
+          <a href="#start" className="font-serif text-[15px] text-mist hover:text-moon">
+            Waitlist
+          </a>
+          <p className="font-serif text-[15px] text-dusk">© 2026</p>
         </div>
       </div>
     </footer>

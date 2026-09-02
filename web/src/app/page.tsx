@@ -1,20 +1,26 @@
 import { Header } from "@/components/landing/Header";
 import { Hero } from "@/components/landing/Hero";
-import { CostDemo } from "@/components/landing/CostDemo";
-import { ComparisonCards } from "@/components/landing/ComparisonCards";
-import { FeatureBlocks } from "@/components/landing/FeatureBlocks";
+import { Season } from "@/components/landing/Season";
+import { Machine } from "@/components/landing/Machine";
+import { NextSeason } from "@/components/landing/NextSeason";
+import { Ledger } from "@/components/landing/Ledger";
+import { Faq } from "@/components/landing/Faq";
+import { Waitlist } from "@/components/landing/Waitlist";
 import { Footer } from "@/components/landing/Footer";
 import { StickyCta } from "@/components/landing/StickyCta";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-canvas text-foreground">
+    <div className="relative min-h-screen">
       <Header />
-      <main className="pb-24 md:pb-8">
+      <main>
         <Hero />
-        <CostDemo />
-        <ComparisonCards />
-        <FeatureBlocks />
+        <Season />
+        <Machine />
+        <NextSeason />
+        <Ledger />
+        <Faq />
+        <Waitlist />
       </main>
       <Footer />
       <StickyCta />

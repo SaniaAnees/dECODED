@@ -1,27 +1,29 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import { Geist, Geist_Mono } from "next/font/google";
-import { AuthProvider } from "@/components/providers/AuthProvider";
+import { IBM_Plex_Mono, Newsreader } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const newsreader = Newsreader({
+  variable: "--font-newsreader",
   subsets: ["latin"],
+  style: ["normal", "italic"],
+  weight: ["400", "500", "600", "700"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const ibmPlexMono = IBM_Plex_Mono({
+  variable: "--font-ibm-plex-mono",
   subsets: ["latin"],
+  weight: ["400", "500"],
 });
 
 export const metadata: Metadata = {
-  title: "dECODED — Prefix-Cached Proxy for AI Coding Agents",
+  title: "dECODED — a coding agent that spends fewer tokens",
   description:
-    "Lossless Memory & Prefix-Cached Proxy for AI Coding Agents. 10x faster agents, 70% cheaper API bills, zero context loss.",
+    "Coding agents waste tokens. We're building one that doesn't. This season: a local prefix cache and normalizer. Next: the harness.",
   openGraph: {
-    title: "dECODED — Prefix-Cached Proxy for AI Coding Agents",
+    title: "dECODED — a coding agent that spends fewer tokens",
     description:
-      "Stop agent context drift and maximize KV-cache hits with a 1-line setup.",
+      "This season: a local prefix cache and normalizer. Next: a coding harness designed around that.",
     type: "website",
   },
 };
@@ -30,9 +32,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${newsreader.variable} ${ibmPlexMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-canvas text-foreground">
+      <body className="relative flex min-h-full flex-col text-mist">
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-WKCBEQGG07"
           strategy="afterInteractive"
@@ -45,7 +47,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             gtag('config', 'G-WKCBEQGG07');
           `}
         </Script>
-        <AuthProvider>{children}</AuthProvider>
+        {children}
       </body>
     </html>
   );
