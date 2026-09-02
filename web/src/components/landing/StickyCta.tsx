@@ -22,7 +22,7 @@ export function StickyCta() {
     <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-canvas/90 p-3 backdrop-blur-md md:hidden">
       <a
         href="#start"
-        className="block bg-moon py-3 text-center font-serif text-[15px] text-white"
+        className="block bg-moon py-3 text-center font-serif text-[15px] text-canvas"
       >
         Join the list
       </a>

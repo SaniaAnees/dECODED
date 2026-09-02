@@ -65,7 +65,7 @@ export function BetaForm({
         <button
           type="submit"
           disabled={status === "saving"}
-          className="bg-moon px-6 py-3 font-serif text-[15px] text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+          className="bg-moon px-6 py-3 font-serif text-[15px] text-canvas transition-opacity hover:opacity-90 disabled:opacity-60"
         >
           {status === "saving" ? "Saving…" : submitLabel}
         </button>

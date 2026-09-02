@@ -1,16 +1,15 @@
 @import "tailwindcss";
 
-/* Daylight. The hero is a painted sky (public/sky.jpg); the page below is paper.
-   Token names are kept from the earlier dark theme so components need no edits:
-   moon = primary text (deep navy), ink = panel surface, canvas = paper. */
+/* Night. The hero is a painted night sky (public/sky.jpg) that fades into
+   the page below. Values sampled from the painting. */
 :root {
-  --canvas: #f4f0e8;
-  --ink: #fbf9f4;
-  --moon: #1c2340;
-  --gilt: #b07a2c;
-  --mist: #4e5871;
-  --dusk: #8b93aa;
-  --line: rgba(28, 35, 64, 0.14);
+  --canvas: #0a1530;
+  --ink: #12214a;
+  --moon: #f1e9d8;
+  --gilt: #d9b978;
+  --mist: #aeb9d6;
+  --dusk: #6c7899;
+  --line: rgba(241, 233, 216, 0.14);
 }
 
 @theme inline {
@@ -42,7 +41,7 @@ body {
 }
 
 ::selection {
-  background: rgba(176, 122, 44, 0.25);
+  background: rgba(217, 185, 120, 0.3);
   color: var(--moon);
 }
 
@@ -65,7 +64,7 @@ body {
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(28, 35, 64, 0.22),
+    rgba(241, 233, 216, 0.22),
     transparent
   );
 }
