@@ -24,7 +24,7 @@ export function StickyCta() {
         href="#start"
         className="block bg-moon py-3 text-center font-serif text-[15px] text-white"
       >
-        Join the list
+        Request access
       </a>
     </div>
   );

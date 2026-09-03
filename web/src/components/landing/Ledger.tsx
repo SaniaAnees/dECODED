@@ -1,5 +1,5 @@
 import { CopyCommand } from "@/components/landing/CopyCommand";
-import { SETUP_CMD } from "@/lib/site";
+import { SETUP_UNIX, SETUP_WINDOWS } from "@/lib/site";
 
 export function Ledger() {
   return (
@@ -10,23 +10,43 @@ export function Ledger() {
           THE LAYER THAT EXISTS
         </p>
         <h2 className="mt-5 max-w-2xl font-serif text-4xl font-medium leading-tight text-moon md:text-5xl">
-          One line, if you want to point an agent at the proxy.
+          PAYG: run the proxy, then point the agent at it.
         </h2>
         <p className="mt-6 max-w-xl font-serif text-lg leading-relaxed text-mist">
-          Optional. The waitlist does not require it. This is the setup for the
-          cache layer — not a claim that every agent is wired today.
+          DecodeD listens on 127.0.0.1:8080. Install the binary, set DECODED_*
+          on that process, point the agent at localhost. Your key is forwarded;
+          it never hits a dECODED server.
         </p>
 
-        <div className="mt-12 border border-line bg-ink/60 p-6 md:p-8">
-          <div className="flex items-center justify-between gap-4">
-            <p className="font-mono text-[11px] tracking-[0.18em] text-dusk">
-              shell
-            </p>
-            <CopyCommand className="font-mono text-[11px] tracking-[0.14em] text-gilt hover:text-moon" />
+        <div className="mt-12 space-y-6">
+          <div className="border border-line bg-ink/60 p-6 md:p-8">
+            <div className="flex items-center justify-between gap-4">
+              <p className="font-mono text-[11px] tracking-[0.18em] text-dusk">
+                macOS / Linux
+              </p>
+              <CopyCommand
+                text={SETUP_UNIX}
+                className="font-mono text-[11px] tracking-[0.14em] text-gilt hover:text-moon"
+              />
+            </div>
+            <pre className="mt-6 overflow-x-auto font-mono text-[13px] leading-relaxed text-moon/90 md:text-sm">
+              {SETUP_UNIX}
+            </pre>
           </div>
-          <pre className="mt-6 overflow-x-auto font-mono text-[13px] leading-relaxed text-moon/90 md:text-sm">
-            {SETUP_CMD}
-          </pre>
+          <div className="border border-line bg-ink/60 p-6 md:p-8">
+            <div className="flex items-center justify-between gap-4">
+              <p className="font-mono text-[11px] tracking-[0.18em] text-dusk">
+                Windows
+              </p>
+              <CopyCommand
+                text={SETUP_WINDOWS}
+                className="font-mono text-[11px] tracking-[0.14em] text-gilt hover:text-moon"
+              />
+            </div>
+            <pre className="mt-6 overflow-x-auto font-mono text-[13px] leading-relaxed text-moon/90 md:text-sm">
+              {SETUP_WINDOWS}
+            </pre>
+          </div>
         </div>
       </div>
     </section>

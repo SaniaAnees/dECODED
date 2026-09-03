@@ -6,6 +6,10 @@ node_modules/
 __pycache__/
 *.pyc
 decoded.egg-info/
+/decoded
+/decoded.exe
 .env
 .env.local
 *.log
+cacheprobe-turns/
+testdata/manual/

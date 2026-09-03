@@ -254,10 +254,10 @@ These apply regardless of which company hosts the upstream. Vendor-specific beha
 
 | Shape | Cache.Mode | Normalizer injects | Strip before forward | Session affinity |
 |---|---|---|---|---|
-| `anthropic-compatible` | `explicit` | `cache_control: { "type": "ephemeral" }` on last stable block (≤4 breakpoints) | — | optional `session_id` if present in body |
-| `openai-compatible` | `implicit` | **nothing** | `cache_control` if agent sent Anthropic markers by mistake | optional `prompt_cache_key` / `user` |
+| `anthropic-compatible` | `explicit` | **2–3** `cache_control: { "type": "ephemeral" }` on stable tiers (tools / system / docs); volatile moved past last breakpoint; ≤4 total | — | proxy: sticky `session_id` / affinity when useful |
+| `openai-compatible` | `implicit` | **nothing**; volatile still moved/sorted for prefix stability | `cache_control` if agent sent Anthropic markers | proxy: `prompt_cache_key` / `user` |
 | `openai-responses` | `implicit` | **nothing** | `cache_control`; preserve native `prompt_cache_*` if already set | `prompt_cache_key` |
-| `unknown` | `implicit` | **nothing** | `cache_control` (fail-open safe default) | — |
+| `unknown` | `implicit` | **nothing** | `cache_control` | — |
 
 **`SupportsCache` in normalizer terms** = `Cache.Mode == explicit` only. Groq/OpenAI/DeepSeek *do* cache upstream, but the normalizer must **not** add `cache_control` — that is implicit caching.
 
@@ -270,7 +270,7 @@ Sources fetched and verified **2026-08-22**. Links are the canonical doc pages.
 
 | Upstream | Official doc | Cache type | Client must send | Normalizer (dECODED) | Hit metric (response) |
 |---|---|---|---|---|---|
-| **Anthropic** | [Prompt caching](https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching) | Explicit `cache_control` | Top-level or per-block `{ "type": "ephemeral" }`; optional `"ttl": "1h"` | **Inject** on stable blocks (≤4 breakpoints) | `usage.cache_read_input_tokens`, `usage.cache_creation_input_tokens` |
+| **Anthropic** | [Prompt caching](https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching) | Explicit `cache_control` | Top-level or per-block `{ "type": "ephemeral" }`; optional `"ttl": "1h"` | **Inject 2–3** markers on stable tiers (≤4); **move volatile to tail** | `usage.cache_read_input_tokens`, `usage.cache_creation_input_tokens` |
 | **OpenAI** | [Prompt caching](https://developers.openai.com/api/docs/guides/prompt-caching) | Automatic prefix; GPT-5.6+ explicit breakpoints | Nothing (auto); optional `prompt_cache_key`, `prompt_cache_breakpoint`, `prompt_cache_options` | **Never** inject `cache_control` | `usage.prompt_tokens_details.cached_tokens` (Chat); `usage.input_tokens_details.cached_tokens` (Responses) |
 | **Groq** | [Prompt caching](https://console.groq.com/docs/prompt-caching) | Automatic prefix | Nothing | **Never** inject | `usage.prompt_tokens_details.cached_tokens` |
 | **OpenRouter** | [Prompt caching](https://openrouter.ai/docs/guides/best-practices/prompt-caching) | Per upstream; translates markers | `session_id` or `x-session-id` for sticky routing; optional `cache_control` / `prompt_cache_breakpoint` | Inject on anthropic shape; strip stray markers on openai shape | `usage.prompt_tokens_details.cached_tokens`, `cache_write_tokens` |
@@ -414,19 +414,44 @@ Golden fixtures in `testdata/detect/` — one JSON (+ path) per case:
 
 `Normalize(body []byte, p Provider) ([]byte, error)`
 
-This is the product. Output must be **byte-identical** across turns when system + tools + stable content have not changed.
+This is the product for **PAYG**. Output must be **byte-identical** across turns when the stable zone has not changed. PAYG success metric: **≥90% of stable-prefix tokens from cache after turn 1** (same model, sticky session, measured via `cache_read_*` / `cached_tokens`). First turn is warm-up (cache write); do not count it as a miss against that target.
 
-Rules:
+Hardcore layout goal (Anthropic explicit; OpenAI keeps implicit prefix stability):
 
-1. Sort tool definitions alphabetically by `name`.
-2. Strip timestamps from system text (ISO-8601, Unix seconds, `Current time:`, `Today is:`, `Current Time:`).
-3. Strip dynamic session IDs from system text (UUID v4, obvious `session_id=` / `sessionId` values).
-4. Sort consecutive same-type content blocks (`document`, `image`) by SHA-256 of canonical JSON.
-5. **If `p.Cache.Mode == explicit` (anthropic-compatible shape):** attach `cache_control: { "type": "ephemeral" }` on the last stable block (system if present, else last sorted tool). Do not exceed `p.Cache.MaxBreakpoints` (4). Do not move a block that already has `cache_control`.
-6. **If `p.Cache.Mode == implicit` or `strip`:** never inject `cache_control` or `prompt_cache_breakpoint`; strip Anthropic `cache_control` from content blocks and tools before forward.
-7. Do not rewrite the current user turn or `tool_result` / `tool_use` blocks (anthropic) / `tool` role messages (openai).
+```
+[ tools A–Z ]     ← breakpoint 1 (changes rarely)
+[ system / policies / static docs ]  ← breakpoint 2–3
+[ volatile block: time, session ids, request noise ]  ← AFTER last breakpoint
+[ current user turn | tool_use / tool_result ]      ← may change every turn
+```
 
-Deterministic JSON: sorted object keys when re-serializing is required; stable spacing. Golden tests in `testdata/` must fail the build if a second `Normalize` of the same input differs by one byte.
+Volatile content is **moved to the end**, not destroyed by default. Regex strip is a **fallback** only when volatility is embedded inside an otherwise-stable string that cannot be split cleanly.
+
+#### Rules (apply in order)
+
+1. **Parse:** Reject empty / non-object JSON with a typed error. Use `json.Decoder` + `UseNumber()` so large ints stay stable. Canonical re-marshal later (sorted object keys, `SetEscapeHTML(false)`, compact). No `time.Now`, no map-iteration-dependent output.
+
+2. **Sort tools** alphabetically by identity key (Anthropic: `name`; OpenAI: `function.name` else `name`). Tie-break: SHA-256 of canonical tool JSON. Do not drop tools.
+
+3. **Volatile → tail (primary):** Detect volatile spans/blocks (ISO-8601 timestamps, labeled `Current time:` / `Today is:` / `Current Time:`, UUID v4, `session_id=` / `sessionId=` / `session-id:`). Prefer **extracting** them into a dedicated volatile message/block **after** the last cache breakpoint so the stable prefix stays byte-identical. Preserve the information for the model; do not rely on deleting it first.
+
+4. **Regex strip (fallback only):** If volatility cannot be moved without breaking API shape, strip with **line-anchored / labeled** patterns only. Never delete arbitrary long numbers outside time/session context. Prefer move-to-tail over strip.
+
+5. **Sort consecutive same-type media runs** (`document`, `image`, and clear aliases) by SHA-256 of canonical JSON. Do not reorder `text`, `tool_use`, `tool_result`, `thinking`, etc.
+
+6. **Explicit mode (`p.Cache.Mode == explicit`, Anthropic-compatible):** attach **2–3** `cache_control: { "type": "ephemeral" }` markers on stable tiers (not a single marker only), within `p.Cache.MaxBreakpoints` (max **4**). Suggested tiers when present: (1) last sorted tool, (2) last stable system text block, (3) last static doc/media block in the stable zone. Do **not** set top-level request `cache_control` in V1. Do not move a block that already has `cache_control` (count existing markers toward the budget). Never inject into user turn, `tool_use`, `tool_result`, or after the volatile tail.
+
+7. **Implicit / strip / none:** never inject `cache_control` or `prompt_cache_breakpoint`. Deep-strip Anthropic `cache_control` from the document. Leave native OpenAI `prompt_cache_*` alone. Trust `p.Cache.Mode` — do not re-read `DECODED_*` env inside normalizer.
+
+8. **Do not rewrite** assistant history text, current user turn content, or `tool_result` / `tool_use` (Anthropic) / `role: "tool"` / `tool_calls` payloads (OpenAI), except deep-stripping illegal `cache_control` when mode is strip/implicit/none.
+
+9. **V1 body shapes:** Anthropic Messages + OpenAI Chat Completions. Responses API (`input[]`): no Anthropic marker injection; best-effort stable marshal only unless structure clearly overlaps.
+
+10. **Idempotence:** `Normalize(Normalize(body, p), p)` equals the first output byte-for-byte. Golden tests in `testdata/normalize/` must fail the build if a second `Normalize` differs by one byte.
+
+#### What normalizer does not solve
+
+Model switches, TTL expiry, cold routing replicas, tool-**set** changes inside the cached zone, Cursor’s hidden Pro prefix, and prompts below provider minimum tokens. Sticky routing and session headers are **proxy** duties. **Turn-1 freeze of `tools[]` and of legacy system docs** needs harness memory — see **Harness memory** under V2. Not a normalizer feature.
 
 ### 3. `internal/proxy`
 
@@ -443,11 +468,18 @@ On every POST:
 
 1. Read body (+ path, headers).
 2. `Detect(url, body, headers)` → `Normalize(body, p)`.
-3. Forward **normalized** body to `UpstreamURL(p.Shape, path)` with **incoming auth headers copied** (`x-api-key`, `Authorization`, `anthropic-version`, `anthropic-beta`, `content-type`, session/sticky headers). **Never log header values.**
-4. Stream the response back.
-5. Parse usage JSON (non-stream, or the final stream chunk) and `stats.Record`.
+3. Forward **normalized** body to `UpstreamURL(p.Shape, path)` with **incoming auth headers copied** (`x-api-key`, `Authorization`, `anthropic-version`, `anthropic-beta`, `content-type`). **Never log header values.**
+4. **Sticky session (PAYG cache routing):** ensure a stable sticky key is present when forwarding — preserve incoming `session_id` / `x-session-id` / `prompt_cache_key` / `x-session-affinity` / `user` if set; otherwise generate a deterministic per-process (or per-agent-session) key and set the fields listed on `p.SessionAffinity` / OpenAI `prompt_cache_key` as appropriate. Improves odds of hitting the same cache replica; does not fix dirty prefixes.
+5. Stream the response back.
+6. Parse usage JSON (non-stream, or the final stream chunk) and `stats.Record`.
 
-**Fail open:** any detect/normalize/parse error → forward the **original** body and headers unchanged. Never block the developer.
+#### Fail policy (cache-aware — not “always forward dirty”)
+
+| Stage | Policy |
+|---|---|
+| Body not understood (empty / invalid JSON / Detect never got a usable object) | **Fail-open:** forward **original** body + headers. Never block a broken client on parse. |
+| Body parsed and shape known, then `Normalize` fails | **Do not** forward the dirty original. Return an error response to the client (or retry once with a safe subset). Dirty fail-open after understanding the request **destroys** PAYG hit rate. |
+| `Normalize` succeeds | Forward **only** the normalized body. |
 
 Listen loopback only (`127.0.0.1`). Do not bind `0.0.0.0` in V1.
 
@@ -474,7 +506,7 @@ Log one line per request (no keys):
 | `decoded start` | `proxy.Start("127.0.0.1:8080")`. Print listen URL and `export ANTHROPIC_BASE_URL=http://localhost:8080/v1`. |
 | `decoded init` | Detect Cursor / Claude Code / Copilot / Codex. **Write MCP config + rules.** Pro users are done after this + IDE restart. PAYG: also print `decoded start` + `ANTHROPIC_BASE_URL`. |
 | `decoded mcp` | stdio MCP server (IDE launches this). Required for Pro. |
-| `decoded stats` | Print snapshot. Proxy stats from `127.0.0.1:8080/stats` when `start` is running. MCP can log local read/stub counts to stderr or a small stats file. |
+| `decoded stats` | Print snapshot + optional **estimated cache warmth / TTL remaining** (from last hit/write + provider TTL hint). Proxy stats from `127.0.0.1:8080/stats` when `start` is running. Not injected into Claude Code’s UI — `decoded` owns this surface. |
 
 ### 6. `internal/mcp`
 
@@ -523,17 +555,25 @@ Pro never sets `ANTHROPIC_BASE_URL` to localhost.
 
 ## Frozen prefix (why cache hits)
 
-**PAYG — we own the prefix**
+**PAYG — we own the prefix (hardcore layout)**
 
 ```
-[ system (no clocks, no session ids) | tools A-Z | stable docs hashed ]
-                                                      ^
-                                                      cache_control (Anthropic only)
-[ current user turn | tool results ]   ← may change every turn
+[ tools A–Z ]
+[ system / policies / static docs ]
+[ volatile: time, session, request noise ]  ← AFTER last breakpoint (moved, not regex-deleted by default)
+[ current user turn | tool results ]        ← may change every turn
 ```
 
-One changed byte before the breakpoint → full miss.  
-Model switch (Sonnet → Haiku) → miss. Expected.
+Breakpoints (normalizer injects; not the same JSON field):
+
+- **Anthropic explicit:** `cache_control: { "type": "ephemeral" }` on last tool, last stable system text, last stable system doc (≤4). Tools ★ is prefix 1; system ★ is tools+rules. Never put `cache_control` on OpenAI-shaped bodies (strip if present).
+- **OpenAI gpt-5.6+ (or body already has `prompt_cache_options` / a breakpoint):** one `prompt_cache_breakpoint` on last stable system/developer **text**. **Not** on `tools[]`. gpt-4o and most OpenAI-compat (Groq, Mistral, many OpenRouter routes): **implicit** — no sticker; hit is `usage.prompt_tokens_details.cached_tokens` (or vendor equivalent) when the compiled prefix matches.
+
+Sticky session headers (`prompt_cache_key` / `session_id` / `x-session-affinity`, …) keep follow-ups on a warm replica.
+
+One changed byte **before** the last stable breakpoint → miss for that prefix tier.  
+Model switch (Sonnet → Haiku) → miss. Expected (cache is per model — not shared across models).  
+Optional tools that must grow mid-session belong **after** the last breakpoint (or keep the full tool list fixed). Appending into the cached tool zone kills hits.
 
 **Pro — Cursor owns the prefix; we own the next slot**
 
@@ -556,13 +596,16 @@ Same outcome (hit on frozen bytes). Different door.
 **PAYG**
 
 - [ ] `decoded start` listens on `127.0.0.1:8080`
-- [ ] Fail-open: poisoned normalizer still forwards original body
+- [ ] Parse/Detect failure: fail-open forwards original body
+- [ ] After successful parse: Normalize failure must **not** forward dirty original
 - [ ] Auth headers forwarded; never written to logs or disk
-- [ ] Anthropic: tools sorted, timestamps stripped, `cache_control` on last stable block
-- [ ] OpenAI/Groq: no illegal `cache_control`
+- [ ] Sticky session key preserved or injected on forward
+- [ ] Anthropic: tools sorted; volatile moved to tail (regex fallback only); **2–3** `cache_control` markers on stable tiers (≤4)
+- [ ] OpenAI/Groq: no illegal `cache_control` (strip); no Anthropic marker injection
 - [ ] Golden test: `Normalize` twice on the same fixture → identical bytes
-- [ ] Live: 3+ turn loop, unchanged system+tools, turn 2+ has `cache_read_input_tokens > 0` (Anthropic API key)
-- [ ] `decoded stats` shows requests, hits, hitRate, tokensSaved
+- [ ] Live: 3+ turn loop, same model, unchanged stable zone, turn 2+ has `cache_read_input_tokens > 0` (Anthropic API key)
+- [ ] Live target: **≥90% of stable-prefix tokens** from cache on turns 2..N (measured; warm-up turn excluded)
+- [ ] `decoded stats` shows requests, hits, hitRate, tokensSaved (prefix-token aware)
 
 **Pro (not optional)**
 
@@ -575,14 +618,28 @@ Same outcome (hit on frozen bytes). Different door.
 - [ ] `decoded_shell` compressed stdout is byte-identical for the same known CLI + same tree (stderr still verbatim)
 - [ ] README Pro path: `decoded init` only — no tunnel, no BASE_URL
 
-PAYG target: **90%+ of prefix tokens from cache after turn 1** (measured).  
-Pro target: **MCP is the product they download** — fewer tokens on reads/shell, byte-stable tool results so Cursor’s cache can hit after its unknown prefix. Do not advertise Pro as 90% Anthropic `cache_read`.
+PAYG target: **90%+ of stable-prefix tokens from cache after turn 1** (measured; same model; sticky session). Not a guarantee across model switches, TTL expiry, or tool-set changes inside the cached zone.  
+Pro target: **MCP is the product they download** — fewer tokens on reads/shell, byte-stable tool results so Cursor’s cache can hit after its unknown prefix. Do not advertise Pro as 90% Anthropic `cache_read`. Cache warmth / TTL estimate (if any) lives in `decoded stats` / CLI — not inside Claude Code’s UI.
 
 ## V2 (after V1, not now)
 
 Harness: tiny frozen prefix + AST signatures/diffs in the suffix + local WAL handles + `hydrate`. Store-lossless. No LLMLingua in the prefix. No whole-repo AST in Zone 1.
 
 V1 already returns per-file AST from `decoded_read`. V2 is the harness around it (diffs in the suffix, WAL, `hydrate`) — not “add AST for the first time.”
+
+### Harness memory (not the proxy — do when forking / building the harness)
+
+V1 `Normalize` + proxy are **stateless**: one HTTP body, no turn-1 store. They **must not** drop tools, **must not** invent which `system` docs are “legacy,” and **must not** move files into the user turn without memory.
+
+When a harness (or session store) **remembers turn 1**, implement:
+
+1. **Freeze tools** — Persist turn-1 `tools[]` (full menu, still never drop mid-session). Resend that exact list every later turn. A–Z sort stays in `Normalize`. Do not grow/shrink `tools[]` in the cached zone; a new session if the menu must change. Extra verbs after the last ★ only as non-`tools[]` text if ever needed (weak); prefer a fixed menu.
+
+2. **Freeze system docs** — Persist turn-1 legacy `system` docs (persona, `architecture.md`, `context.md`, repo files). Resend them unchanged. Put **new** docs/images on the **last user** message (or after the last `cache_control` / breakpoint), not spliced into frozen `system[]`. Last-user media stays unsorted in V1 already; the harness is what *places* new files there.
+
+3. **Three-door CLI (`decoded` with no args)** — Ask once: (1) **I brought my own API key** (PAYG) → `start` + BASE_URL, no MCP; (2) **I use a subscription** (Cursor Pro / Claude Pro / Copilot) → `init` only, never BASE_URL; (3) **both** on this laptop → both doors, warn extra MCP tools can miss cache once. Save `~/.decoded/mode`. Wrong later command (`init` vs `start`) asks yes/no. This is **which bill they pay**, **not** turn-1 prefix freeze. It does **not** require a session store; it can ship with `cmd/decoded` before the harness. Do not auto-run both doors.
+
+Until turn-1 memory exists, if `tools[]` or `system` docs change in the incoming body, prefixes that include those bytes miss (tools-only ★ can still hit when only system/docs change). Do not fake freeze inside `internal/normalizer`.
 
 ## Rust later
 

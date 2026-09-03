@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Script from "next/script";
 import { IBM_Plex_Mono, Newsreader } from "next/font/google";
+import { AuthProvider } from "@/components/providers/AuthProvider";
 import "./globals.css";
 
 const newsreader = Newsreader({
@@ -17,13 +18,11 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "dECODED — a coding agent that spends fewer tokens",
-  description:
-    "Coding agents waste tokens. We're building one that doesn't. This season: a local prefix cache and normalizer. Next: the harness.",
+  title: "dECODED",
+  description: "Coding agents waste tokens. We're building one that doesn't.",
   openGraph: {
-    title: "dECODED — a coding agent that spends fewer tokens",
-    description:
-      "This season: a local prefix cache and normalizer. Next: a coding harness designed around that.",
+    title: "dECODED",
+    description: "Coding agents waste tokens. We're building one that doesn't.",
     type: "website",
   },
 };
@@ -47,7 +46,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             gtag('config', 'G-WKCBEQGG07');
           `}
         </Script>
-        {children}
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );

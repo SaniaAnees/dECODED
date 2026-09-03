@@ -231,6 +231,8 @@ func UpstreamURL(shape Shape, path string) string {
 
 func routeBase(shape Shape, path string) string {
 	switch {
+	case strings.Contains(path, "/v1beta/models"):
+		return envOr("DECODED_GEMINI_BASE_URL", "https://generativelanguage.googleapis.com")
 	case hasPathSuffix(path, "/v1/messages"):
 		return envOr("DECODED_ANTHROPIC_BASE_URL", "https://api.anthropic.com")
 	case hasPathSuffix(path, "/v1/chat/completions"), hasPathSuffix(path, "/v1/responses"):
@@ -254,6 +256,9 @@ func joinBasePath(base, reqPath, rawQuery string) string {
 	reqPath = normalizePath(reqPath)
 	if reqPath != "" {
 		if strings.HasSuffix(base, "/v1") && (reqPath == "/v1" || strings.HasPrefix(reqPath, "/v1/")) {
+			reqPath = strings.TrimPrefix(reqPath, "/v1")
+		} else if strings.Contains(base, "/openai") && (reqPath == "/v1" || strings.HasPrefix(reqPath, "/v1/")) {
+			// Gemini OpenAI-compat root is .../v1beta/openai (no trailing /v1).
 			reqPath = strings.TrimPrefix(reqPath, "/v1")
 		}
 		base += reqPath

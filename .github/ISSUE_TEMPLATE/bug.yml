@@ -1,0 +1,17 @@
+name: Bug
+description: The proxy crashed, 502’d, or broke an agent.
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What went wrong
+      description: Command, agent, lab (Mistral/Anthropic/…). No API keys.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: decoded version
+      description: Output of `decoded version`

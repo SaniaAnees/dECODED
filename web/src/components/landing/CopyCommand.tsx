@@ -5,9 +5,11 @@ import { SETUP_CMD } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 export function CopyCommand({
+  text,
   label = "Copy",
   className,
 }: {
+  text?: string;
   label?: string;
   className?: string;
 }) {
@@ -15,7 +17,7 @@ export function CopyCommand({
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(SETUP_CMD);
+      await navigator.clipboard.writeText(text ?? SETUP_CMD);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1600);
     } catch {

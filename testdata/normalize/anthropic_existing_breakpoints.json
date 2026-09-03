@@ -1,0 +1,30 @@
+{
+  "model": "claude-sonnet-4-5",
+  "max_tokens": 1024,
+  "system": "Stable policy.\nCurrent time: 2026-08-27T10:00:00Z",
+  "tools": [
+    {
+      "name": "a",
+      "input_schema": { "type": "object" },
+      "cache_control": { "type": "ephemeral" }
+    },
+    {
+      "name": "b",
+      "input_schema": { "type": "object" },
+      "cache_control": { "type": "ephemeral" }
+    },
+    {
+      "name": "c",
+      "input_schema": { "type": "object" },
+      "cache_control": { "type": "ephemeral" }
+    },
+    {
+      "name": "d",
+      "input_schema": { "type": "object" },
+      "cache_control": { "type": "ephemeral" }
+    }
+  ],
+  "messages": [
+    { "role": "user", "content": "hi" }
+  ]
+}

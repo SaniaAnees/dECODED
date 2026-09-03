@@ -1,0 +1,39 @@
+{
+  "model": "claude-sonnet-4-5",
+  "max_tokens": 1024,
+  "system": [
+    {
+      "type": "text",
+      "text": "You are a coding agent. Follow the rules."
+    },
+    {
+      "type": "document",
+      "source": {
+        "type": "text",
+        "media_type": "text/plain",
+        "data": "STATIC_DOC_Z"
+      }
+    },
+    {
+      "type": "document",
+      "source": {
+        "type": "text",
+        "media_type": "text/plain",
+        "data": "STATIC_DOC_A"
+      }
+    }
+  ],
+  "tools": [
+    {
+      "name": "grep",
+      "input_schema": { "type": "object" }
+    },
+    {
+      "name": "bash",
+      "input_schema": { "type": "object" }
+    }
+  ],
+  "messages": [
+    { "role": "user", "content": "search" }
+  ]
+}
