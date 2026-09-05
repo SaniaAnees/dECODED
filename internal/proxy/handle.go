@@ -68,9 +68,6 @@ func (s *Server) handleAPI(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) roundTrip(w http.ResponseWriter, r *http.Request, p provider.Provider, body []byte) (bool, error) {
-	if geminiOpenAICompat() && strings.Contains(r.URL.Path, "/chat/completions") {
-		return s.roundTripGeminiBridge(w, r, p, body)
-	}
 	target := upstreamURL(p.Shape, r.URL.RequestURI())
 	req, err := http.NewRequestWithContext(r.Context(), http.MethodPost, target, bytes.NewReader(body))
 	if err != nil {
@@ -94,6 +91,29 @@ func (s *Server) roundTrip(w http.ResponseWriter, r *http.Request, p provider.Pr
 
 	s.log.Printf("upstream %s status=%d", target, resp.StatusCode)
 
+	// Door A (OpenAI-compat) first. Door B (native generateContent) only if
+	// Google rejected the OpenAI-shaped JSON — not 403/429/success.
+	if geminiCompatMaybeShapeFail(r, resp.StatusCode) {
+		raw, readErr := io.ReadAll(io.LimitReader(resp.Body, int64(maxBody)+1))
+		if readErr != nil {
+			return false, readErr
+		}
+		if geminiOpenAIShapeRejected(resp.StatusCode, raw) {
+			s.log.Printf("gemini openai-compat rejected OpenAI-shaped JSON; falling back to generateContent")
+			return s.roundTripGeminiBridge(w, r, p, body)
+		}
+		if resp.StatusCode >= 400 {
+			s.log.Printf("upstream error body: %s", truncateForLog(raw, 800))
+		}
+		copyResponseHeaders(w.Header(), resp.Header)
+		w.Header().Del("Content-Length")
+		w.Header().Del("Content-Encoding")
+		w.WriteHeader(resp.StatusCode)
+		_, _ = w.Write(raw)
+		s.recordCache(raw, resp.Header, p)
+		return true, nil
+	}
+
 	copyResponseHeaders(w.Header(), resp.Header)
 	w.WriteHeader(resp.StatusCode)
 
@@ -108,7 +128,12 @@ func (s *Server) roundTrip(w http.ResponseWriter, r *http.Request, p provider.Pr
 		s.log.Printf("upstream error body: %s", truncateForLog(tail.bytes(), 800))
 	}
 
-	u := stats.FromResponse(tail.bytes(), resp.Header, p.UsageFields)
+	s.recordCache(tail.bytes(), resp.Header, p)
+	return true, copyErr
+}
+
+func (s *Server) recordCache(raw []byte, hdr http.Header, p provider.Provider) {
+	u := stats.FromResponse(raw, hdr, p.UsageFields)
 	u.Shape = p.Shape
 	u.NoCost = groqProfile()
 	s.Stats.Record(u)
@@ -117,7 +142,49 @@ func (s *Server) roundTrip(w http.ResponseWriter, r *http.Request, p provider.Pr
 		pct = 100 * float64(u.ReadTokens) / float64(u.InputTokens)
 	}
 	s.log.Printf("cache %.0f%%  cached=%d  prompt=%d  write=%d", pct, u.ReadTokens, u.InputTokens, u.WriteTokens)
-	return true, copyErr
+
+	snap := s.Stats.Snapshot()
+	s.log.Printf("── stats  requests=%d  hits=%d  cachePct=%.1f%%  tokensSaved=%d  costSaved=$%.4f",
+		snap.Requests, snap.Hits, snap.CachePct, snap.TokensSaved, snap.CostSaved)
+}
+
+func geminiCompatMaybeShapeFail(r *http.Request, status int) bool {
+	if r == nil || !geminiOpenAICompat() || geminiNativePath(r.URL.Path) {
+		return false
+	}
+	if !strings.Contains(r.URL.Path, "/chat/completions") {
+		return false
+	}
+	return status == http.StatusBadRequest || status == http.StatusUnprocessableEntity
+}
+
+func geminiOpenAIShapeRejected(status int, body []byte) bool {
+	if status != http.StatusBadRequest && status != http.StatusUnprocessableEntity {
+		return false
+	}
+	s := strings.ToLower(string(body))
+	if strings.TrimSpace(s) == "" {
+		return false
+	}
+	for _, deny := range []string{
+		"permission", "api key", "api_key", "unauthenticated",
+		"quota", "rate limit", "billing", "blocked",
+	} {
+		if strings.Contains(s, deny) {
+			return false
+		}
+	}
+	for _, needle := range []string{
+		"unknown name", "unknown field", "unknown argument",
+		"invalid json payload", "invalid_argument",
+		"unsupported", "extra_forbidden", "not a valid",
+		"unrecognized", "no such field", "cannot find field",
+	} {
+		if strings.Contains(s, needle) {
+			return true
+		}
+	}
+	return false
 }
 
 func (s *Server) roundTripGeminiBridge(w http.ResponseWriter, r *http.Request, p provider.Provider, body []byte) (bool, error) {
@@ -166,15 +233,7 @@ func (s *Server) roundTripGeminiBridge(w http.ResponseWriter, r *http.Request, p
 	w.WriteHeader(resp.StatusCode)
 	_, _ = w.Write(raw)
 
-	u := stats.FromResponse(raw, resp.Header, p.UsageFields)
-	u.Shape = p.Shape
-	u.NoCost = groqProfile()
-	s.Stats.Record(u)
-	pct := 0.0
-	if u.InputTokens > 0 {
-		pct = 100 * float64(u.ReadTokens) / float64(u.InputTokens)
-	}
-	s.log.Printf("cache %.0f%%  cached=%d  prompt=%d  write=%d", pct, u.ReadTokens, u.InputTokens, u.WriteTokens)
+	s.recordCache(raw, resp.Header, p)
 	return true, nil
 }
 

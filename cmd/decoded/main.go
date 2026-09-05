@@ -43,43 +43,20 @@ func startBanner(addr, goos string) string {
 	if strings.TrimSpace(addr) == "" {
 		addr = proxy.DefaultAddr
 	}
-	openaiUp := envOr("DECODED_OPENAI_BASE_URL", "https://api.openai.com")
-	anthUp := envOr("DECODED_ANTHROPIC_BASE_URL", "https://api.anthropic.com")
-
+	base := fmt.Sprintf("http://%s", addr)
 	var b strings.Builder
-	fmt.Fprintf(&b, "decoded PAYG proxy  http://%s\n", addr)
-	fmt.Fprintf(&b, "  health  http://%s/health\n", addr)
-	fmt.Fprintf(&b, "  stats   http://%s/stats\n", addr)
-	fmt.Fprintf(&b, "upstream openai    %s\n", openaiUp)
-	fmt.Fprintf(&b, "upstream anthropic %s\n", anthUp)
-	fmt.Fprintln(&b)
-	fmt.Fprintln(&b, "This process talks to the lab. Your agent talks to this process.")
-	fmt.Fprintln(&b, "Set DECODED_* on this process. Point the agent at localhost. Keys stay on your machine.")
-	fmt.Fprintln(&b, "feedback  https://github.com/SaniaAnees/dECODED/issues")
+	fmt.Fprintf(&b, "decoded PAYG proxy  %s\n", base)
+	fmt.Fprintf(&b, "  health  %s/health\n", base)
+	fmt.Fprintf(&b, "  stats   %s/stats\n", base)
 	fmt.Fprintln(&b)
 	if goos == "windows" {
-		fmt.Fprintln(&b, "Agent (OpenAI-compatible / Mistral):")
-		fmt.Fprintln(&b, `  $env:OPENAI_BASE_URL="http://127.0.0.1:8080/v1"`)
-		fmt.Fprintln(&b, "Agent (Anthropic):")
-		fmt.Fprintln(&b, `  $env:ANTHROPIC_BASE_URL="http://127.0.0.1:8080/v1"`)
-		fmt.Fprintln(&b, "Example lab (same window as decoded start):")
-		fmt.Fprintln(&b, `  $env:DECODED_OPENAI_BASE_URL="https://api.mistral.ai/v1"`)
-		fmt.Fprintln(&b, `  $env:DECODED_UPSTREAM_PROFILE="mistral"`)
+		fmt.Fprintln(&b, "Agent shell (second terminal):")
+		fmt.Fprintf(&b, "  $env:ANTHROPIC_BASE_URL=\"%s/v1\"\n", base)
+		fmt.Fprintf(&b, "  $env:OPENAI_BASE_URL=\"%s/v1\"\n", base)
 	} else {
-		fmt.Fprintln(&b, "Agent (OpenAI-compatible / Mistral):")
-		fmt.Fprintln(&b, `  export OPENAI_BASE_URL="http://127.0.0.1:8080/v1"`)
-		fmt.Fprintln(&b, "Agent (Anthropic):")
-		fmt.Fprintln(&b, `  export ANTHROPIC_BASE_URL="http://localhost:8080/v1"`)
-		fmt.Fprintln(&b, "Example lab (same shell as decoded start):")
-		fmt.Fprintln(&b, `  export DECODED_OPENAI_BASE_URL="https://api.mistral.ai/v1"`)
-		fmt.Fprintln(&b, `  export DECODED_UPSTREAM_PROFILE="mistral"`)
+		fmt.Fprintln(&b, "Agent shell (second terminal):")
+		fmt.Fprintf(&b, "  export ANTHROPIC_BASE_URL=\"%s/v1\"\n", base)
+		fmt.Fprintf(&b, "  export OPENAI_BASE_URL=\"%s/v1\"\n", base)
 	}
 	return b.String()
-}
-
-func envOr(key, fallback string) string {
-	if v := strings.TrimSpace(os.Getenv(key)); v != "" {
-		return v
-	}
-	return fallback
 }

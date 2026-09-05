@@ -2,7 +2,7 @@ import { BetaForm } from "@/components/landing/BetaForm";
 
 export function Waitlist() {
   return (
-    <section id="start" className="scroll-mt-24 mx-auto max-w-5xl px-6 py-8 md:px-8">
+    <section id="start" className="mx-auto max-w-5xl px-6 py-8 md:px-8">
       <hr className="rule" />
       <div className="py-24 md:py-32">
         <p className="font-mono text-[11px] tracking-[0.28em] text-gilt">

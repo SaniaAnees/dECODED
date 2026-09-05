@@ -207,7 +207,11 @@ func applyUpstreamProfile(p *Provider) {
 	case "gemini":
 		p.Cache.MinPrefixTokens = 2048
 		p.UsageFields = UsageProfile{
-			HitPaths: []string{"usage_metadata.total_cached_tokens"},
+			HitPaths: []string{
+				"usage.prompt_tokens_details.cached_tokens",
+				"usage_metadata.total_cached_tokens",
+				"usageMetadata.cachedContentTokenCount",
+			},
 		}
 	}
 }

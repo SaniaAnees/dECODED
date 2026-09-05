@@ -47,7 +47,7 @@ export function BetaForm({
     return (
       <p
         className={cn(
-          "font-serif text-base italic",
+          "waitlist-joined flex min-h-[2.5rem] items-center font-serif text-base italic",
           hero ? "text-[#f1e6c8]" : "text-gilt"
         )}
       >

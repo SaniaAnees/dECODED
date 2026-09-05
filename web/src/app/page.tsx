@@ -1,27 +1,24 @@
 import { Header } from "@/components/landing/Header";
 import { Hero } from "@/components/landing/Hero";
+import { SkyPageShell } from "@/components/landing/SkyPageShell";
 import { Season } from "@/components/landing/Season";
 import { Machine } from "@/components/landing/Machine";
 import { NextSeason } from "@/components/landing/NextSeason";
-import { Ledger } from "@/components/landing/Ledger";
 import { Faq } from "@/components/landing/Faq";
 import { Footer } from "@/components/landing/Footer";
-import { StickyCta } from "@/components/landing/StickyCta";
 
 export default function Home() {
   return (
-    <div className="relative min-h-screen">
+    <SkyPageShell>
       <Header />
-      <main>
+      <main className="sky-scroll relative z-10">
         <Hero />
         <Season />
         <Machine />
         <NextSeason />
-        <Ledger />
         <Faq />
       </main>
       <Footer />
-      <StickyCta />
-    </div>
+    </SkyPageShell>
   );
 }
