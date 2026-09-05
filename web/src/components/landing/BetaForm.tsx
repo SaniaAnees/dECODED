@@ -15,14 +15,16 @@ export function BetaForm({
   variant?: "page" | "hero";
 }) {
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "saving" | "joined" | "error">(
-    "idle"
-  );
+  const [status, setStatus] = useState<
+    "idle" | "saving" | "processing" | "joined"
+  >("idle");
 
   const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault();
     const value = email.trim().toLowerCase();
-    if (!EMAIL.test(value) || status === "saving") return;
+    if (!EMAIL.test(value) || status === "saving" || status === "processing") {
+      return;
+    }
     setStatus("saving");
     try {
       const res = await fetch("/api/waitlist", {
@@ -34,6 +36,8 @@ export function BetaForm({
         setStatus("idle");
         return;
       }
+      setStatus("processing");
+      await new Promise((resolve) => setTimeout(resolve, 450));
       setStatus("joined");
     } catch {
       setStatus("idle");
@@ -84,7 +88,7 @@ export function BetaForm({
         />
         <button
           type="submit"
-          disabled={status === "saving"}
+          disabled={status === "saving" || status === "processing"}
           className={cn(
             "relative z-20 shrink-0 bg-transparent px-3 py-2 font-serif text-sm italic disabled:opacity-60",
             hero
@@ -92,7 +96,11 @@ export function BetaForm({
               : "text-moon/70 hover:text-moon"
           )}
         >
-          {status === "saving" ? "Sending…" : submitLabel}
+          {status === "saving"
+            ? "Sending…"
+            : status === "processing"
+              ? "Processing…"
+              : submitLabel}
         </button>
       </div>
     </form>
