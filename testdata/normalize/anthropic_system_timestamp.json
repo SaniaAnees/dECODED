@@ -1,0 +1,8 @@
+{
+  "model": "claude-sonnet-4-5",
+  "max_tokens": 1024,
+  "system": "You are a coding agent.\nCurrent time: 2026-08-27T10:00:00Z\nFollow the repository rules.",
+  "messages": [
+    { "role": "user", "content": "read main.go" }
+  ]
+}

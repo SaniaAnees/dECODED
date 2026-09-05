@@ -1,0 +1,1 @@
+{"max_tokens":1024,"messages":[{"content":"read main.go","role":"user"}],"model":"claude-sonnet-4-5","system":[{"cache_control":{"type":"ephemeral"},"text":"You are a coding agent.\n\nFollow the repository rules.","type":"text"},{"text":"Volatile context:\nCurrent time: 2026-08-27T10:00:00Z","type":"text"}]}

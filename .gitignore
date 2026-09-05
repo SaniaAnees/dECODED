@@ -6,6 +6,16 @@ node_modules/
 __pycache__/
 *.pyc
 decoded.egg-info/
+/decoded
+/decoded.exe
 .env
 .env.local
+.env.example
 *.log
+cacheprobe-turns/
+testdata/manual/
+
+# Lab-only — not the PAYG install
+cmd/cacheprobe/
+testdata/probe-workspace/
+architecture.md

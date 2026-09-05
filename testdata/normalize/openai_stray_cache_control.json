@@ -1,0 +1,34 @@
+{
+  "model": "gpt-4o",
+  "prompt_cache_key": "sticky-1",
+  "prompt_cache_options": { "ttl": "30m" },
+  "messages": [
+    {
+      "role": "system",
+      "content": [
+        {
+          "type": "text",
+          "text": "stable prefix",
+          "cache_control": { "type": "ephemeral" },
+          "prompt_cache_breakpoint": { "mode": "explicit" }
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "id": "c1",
+          "type": "function",
+          "function": { "name": "x", "arguments": "{}" }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "c1",
+      "content": "ok"
+    },
+    { "role": "user", "content": "hi" }
+  ]
+}

@@ -1,0 +1,1 @@
+{"max_tokens":1024,"messages":[{"content":"hi","role":"user"}],"model":"claude-sonnet-4-5","tools":[{"input_schema":{"type":"object"},"name":"alpha"},{"cache_control":{"type":"ephemeral"},"input_schema":{"type":"object"},"name":"zeta"}]}

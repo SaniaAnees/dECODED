@@ -414,6 +414,14 @@ func TestUpstreamURLDefaultsAndEnv(t *testing.T) {
 	if got, want := UpstreamURL(ShapeOpenAI, "https://unused.example/v1/chat/completions?n=1"), "https://api.groq.com/openai/v1/chat/completions?n=1"; got != want {
 		t.Fatalf("got %q want %q", got, want)
 	}
+
+	t.Setenv("DECODED_OPENAI_BASE_URL", "https://generativelanguage.googleapis.com/v1beta/openai")
+	if got, want := UpstreamURL(ShapeOpenAI, "/v1/chat/completions"), "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"; got != want {
+		t.Fatalf("gemini compat join: got %q want %q", got, want)
+	}
+	if got, want := UpstreamURL(ShapeUnknown, "/v1beta/models/gemini-3.6-flash:generateContent"), "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent"; got != want {
+		t.Fatalf("gemini native join: got %q want %q", got, want)
+	}
 }
 
 func TestUpstreamURLRoutesByPathNotShape(t *testing.T) {

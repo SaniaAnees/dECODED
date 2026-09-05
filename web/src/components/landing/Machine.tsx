@@ -1,7 +1,7 @@
 const notes = [
   {
     title: "Localhost",
-    body: "The proxy listens on your machine. Prompts are not stored on a dECODED server. There is no hosted hop.",
+    body: "The proxy listens on your machine. Prompts are not stored on a Wrayle server. There is no hosted hop.",
   },
   {
     title: "Your keys",

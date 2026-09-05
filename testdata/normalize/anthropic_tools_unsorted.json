@@ -1,0 +1,30 @@
+{
+  "model": "claude-sonnet-4-5",
+  "max_tokens": 1024,
+  "system": "You are a coding agent.",
+  "tools": [
+    {
+      "name": "write_file",
+      "description": "Write a file",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": { "type": "string" }
+        }
+      }
+    },
+    {
+      "name": "read_file",
+      "description": "Read a file",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": { "type": "string" }
+        }
+      }
+    }
+  ],
+  "messages": [
+    { "role": "user", "content": "read main.go" }
+  ]
+}

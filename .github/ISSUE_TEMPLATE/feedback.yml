@@ -1,0 +1,22 @@
+name: Feedback
+description: Waste, great, or a change you want in the PAYG proxy.
+title: "[feedback] "
+labels: ["feedback"]
+body:
+  - type: dropdown
+    id: kind
+    attributes:
+      label: This is
+      options:
+        - Waste — did not help / would not use
+        - Great — cache hits or setup worked
+        - Improvement — a concrete change
+    validations:
+      required: true
+  - type: textarea
+    id: note
+    attributes:
+      label: Tell us
+      description: What you ran (agent + lab), and what happened. No API keys.
+    validations:
+      required: true
