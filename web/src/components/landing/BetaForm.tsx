@@ -18,12 +18,14 @@ export function BetaForm({
   const [status, setStatus] = useState<"idle" | "saving" | "joined" | "error">(
     "idle"
   );
+  const [error, setError] = useState<string | null>(null);
 
   const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault();
     const value = email.trim().toLowerCase();
     if (!EMAIL.test(value) || status === "saving") return;
     setStatus("saving");
+    setError(null);
     try {
       const res = await fetch("/api/waitlist", {
         method: "POST",
@@ -31,12 +33,17 @@ export function BetaForm({
         body: JSON.stringify({ email: value }),
       });
       if (!res.ok) {
-        setStatus("idle");
+        const body = (await res.json().catch(() => null)) as {
+          error?: string;
+        } | null;
+        setError(body?.error ?? "Could not save your email. Try again.");
+        setStatus("error");
         return;
       }
       setStatus("joined");
     } catch {
-      setStatus("idle");
+      setError("Network error. Check your connection and try again.");
+      setStatus("error");
     }
   };
 
@@ -58,6 +65,17 @@ export function BetaForm({
 
   return (
     <form onSubmit={handleJoin}>
+      {status === "error" && error ? (
+        <p
+          role="alert"
+          className={cn(
+            "mb-2 font-serif text-sm",
+            hero ? "text-[#f5c6c6]" : "text-red-300"
+          )}
+        >
+          {error}
+        </p>
+      ) : null}
       <div
         className={cn(
           "relative flex w-[20rem] items-center rounded-xl border bg-transparent",

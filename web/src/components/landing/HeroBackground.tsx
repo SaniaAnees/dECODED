@@ -1,15 +1,13 @@
-import Image from "next/image";
-
 export function HeroBackground() {
   return (
     <div className="hero-sky pointer-events-none absolute inset-0 overflow-hidden">
-      <Image
+      {/* Plain img — matches localhost dev and avoids Next/Image WebP drift on Vercel. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
         src="/sky.jpg"
         alt=""
-        fill
-        priority
-        sizes="100vw"
-        className="hero-sky__img sky-print object-cover object-[50%_42%]"
+        decoding="async"
+        className="hero-sky__img sky-print h-full w-full object-cover object-[50%_42%]"
       />
     </div>
   );
