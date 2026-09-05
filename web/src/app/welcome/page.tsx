@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { WelcomeScreen } from "@/components/auth/WelcomeScreen";
+import { SkyPageShell } from "@/components/landing/SkyPageShell";
 import { getAuthOptions } from "@/lib/auth";
 import { AUTH_KIND_COOKIE } from "@/lib/auth-session";
 import { SITE_NAME } from "@/lib/site";
@@ -19,14 +20,13 @@ export default async function WelcomePage() {
   const jar = await cookies();
   const authKind = jar.get(AUTH_KIND_COOKIE)?.value;
 
-  // Returning user — skip onboarding slide, land on site (session already valid).
   if (authKind === "returning") {
     redirect("/");
   }
 
   return (
-    <main className="sky-scroll relative min-h-screen overflow-hidden">
+    <SkyPageShell>
       <WelcomeScreen />
-    </main>
+    </SkyPageShell>
   );
 }

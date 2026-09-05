@@ -1,8 +1,8 @@
 "use client";
 
-import { useSession } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { UserProfileMenu } from "@/components/auth/UserProfileMenu";
-import { SIGN_IN_URL } from "@/lib/site";
+import { WELCOME_URL } from "@/lib/site";
 
 export function SignInLink() {
   const { data: session, status } = useSession();
@@ -18,11 +18,12 @@ export function SignInLink() {
   }
 
   return (
-    <a
-      href={SIGN_IN_URL}
+    <button
+      type="button"
+      onClick={() => signIn("google", { callbackUrl: WELCOME_URL })}
       className="font-serif text-[15px] text-white/80 transition-colors hover:text-white"
     >
       Sign in
-    </a>
+    </button>
   );
 }
