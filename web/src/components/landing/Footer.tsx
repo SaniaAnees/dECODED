@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ISSUES_URL } from "@/lib/site";
 import { Wordmark } from "@/components/landing/Wordmark";
 
@@ -36,9 +37,9 @@ export function Footer() {
             link={false}
             className="text-lg font-medium text-[#f7f1e6]/90"
           />
-          <div className="flex items-center gap-8">
+          <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
             <a
-              href="#start"
+              href="/#start"
               className="font-serif text-[15px] text-[#f7f1e6]/72 transition-colors hover:text-[#f7f1e6]"
             >
               Waitlist
@@ -51,6 +52,12 @@ export function Footer() {
             >
               Feedback
             </a>
+            <Link
+              href="/privacy"
+              className="font-serif text-[15px] text-[#f7f1e6]/72 transition-colors hover:text-[#f7f1e6]"
+            >
+              Privacy
+            </Link>
             <p className="font-serif text-[15px] text-[#f7f1e6]/45">© 2026</p>
           </div>
         </div>

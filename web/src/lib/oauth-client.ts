@@ -5,6 +5,7 @@ import { OAUTH_ORIGIN } from "@/lib/site";
 export async function startOAuth(
   provider: AuthProviderId,
   callbackUrl: string,
+  authorizationParams?: Record<string, string>,
 ): Promise<void> {
   const authOrigin = OAUTH_ORIGIN;
 
@@ -17,9 +18,12 @@ export async function startOAuth(
 
   const { csrfToken } = (await csrfResponse.json()) as { csrfToken: string };
 
+  const query = authorizationParams
+    ? `?${new URLSearchParams(authorizationParams).toString()}`
+    : "";
   const form = document.createElement("form");
   form.method = "POST";
-  form.action = `${authOrigin}/api/auth/signin/${provider}`;
+  form.action = `${authOrigin}/api/auth/signin/${provider}${query}`;
 
   const csrf = document.createElement("input");
   csrf.type = "hidden";

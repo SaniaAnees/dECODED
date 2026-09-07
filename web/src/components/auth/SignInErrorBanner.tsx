@@ -4,13 +4,13 @@ import { useSearchParams } from "next/navigation";
 
 const MESSAGES: Record<string, string> = {
   OAuthCallback:
-    "Google sign-in could not finish. Clear cookies for localhost and try again.",
+    "Google could not finish sign-in. Try Continue with Google again.",
   OAuthCreateAccount:
-    "Could not save your account. Database write failed — restart dev server and try again.",
+    "Could not save your account. Try again in a moment.",
   Callback:
-    "Sign-in failed after Google returned. Check DATABASE_URL and auth tables in Supabase.",
+    "Sign-in failed after Google returned. Try another provider, or try again in a moment.",
   Configuration:
-    "Auth is misconfigured. Check AUTH_SECRET and Google credentials in .env.local.",
+    "Sign-in is misconfigured. Try again in a moment.",
   AccessDenied: "Access was denied.",
   Verification: "Verification link expired or already used.",
 };

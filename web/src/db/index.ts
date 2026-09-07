@@ -16,7 +16,12 @@ function createDb(): Db {
   if (!url) {
     throw new Error("DATABASE_URL is not set");
   }
-  const client = postgres(url, { prepare: false, max: 1 });
+  const client = postgres(url, {
+    prepare: false,
+    max: 1,
+    ssl: url.includes("supabase") ? "require" : undefined,
+    connect_timeout: 15,
+  });
   return drizzle(client, { schema });
 }
 

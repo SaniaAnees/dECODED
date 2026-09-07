@@ -4,10 +4,10 @@ import { SignInLink } from "@/components/landing/SignInLink";
 import { Wordmark } from "@/components/landing/Wordmark";
 
 const links = [
-  { href: "#now", label: "Now" },
-  { href: "#next", label: "Next" },
-  { href: "#start", label: "Waitlist" },
-  { href: "#decoded", label: "dECODED" },
+  { href: "/#now", label: "Now" },
+  { href: "/#next", label: "Next" },
+  { href: "/#start", label: "Waitlist" },
+  { href: "/#decoded", label: "dECODED" },
 ];
 
 export function Header() {
@@ -34,7 +34,7 @@ export function Header() {
             href={GITHUB_URL}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="Wrayle on GitHub"
+            aria-label="uncoded on GitHub"
             className="text-white/85 transition-colors hover:text-white"
           >
             <GitHubMark />

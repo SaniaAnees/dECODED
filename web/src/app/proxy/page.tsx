@@ -54,7 +54,7 @@ export default function ProxyPage() {
             Stop paying twice for the same prompt.
           </h2>
           <p className="mt-8 max-w-2xl font-serif text-lg leading-relaxed text-mist">
-            Agents send the same system prompt every turn. Wrayle keeps it stable
+            Agents send the same system prompt every turn. uncoded keeps it stable
             on localhost so cache can hit. Nothing leaves your machine except the
             request to your provider.
           </p>

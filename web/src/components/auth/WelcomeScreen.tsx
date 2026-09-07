@@ -8,7 +8,7 @@ import { SessionLoadingScreen } from "@/components/auth/SessionLoadingScreen";
 import { displayNameFromUser } from "@/lib/display-name";
 import { UserAvatar } from "@/lib/user-avatar";
 import { BrandMark } from "@/components/landing/BrandMark";
-import { SIGN_IN_URL } from "@/lib/site";
+import { SIGN_IN_URL, SITE_NAME, SITE_NAME_CLASS } from "@/lib/site";
 
 const HOLD_MS = 3800;
 const EXIT_MS = 900;
@@ -93,8 +93,8 @@ export function WelcomeScreen() {
         <div className="auth-welcome-item auth-welcome-item--2 mt-8">
           <BrandMark className="mx-auto h-14 w-14" />
         </div>
-        <p className="auth-welcome-item auth-welcome-item--2 mt-5 font-mono text-[11px] tracking-[0.34em] text-gilt">
-          WELCOME TO WRAYLE
+        <p className={`auth-welcome-item auth-welcome-item--2 mt-5 text-[11px] text-gilt ${SITE_NAME_CLASS}`}>
+          welcome to {SITE_NAME}
         </p>
         <h1
           className="auth-welcome-item auth-welcome-item--3 mt-4 font-serif text-4xl font-medium leading-tight text-moon md:text-[2.75rem]"

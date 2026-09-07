@@ -8,7 +8,7 @@ import { SignInErrorBanner } from "@/components/auth/SignInErrorBanner";
 import { SkyPageShell } from "@/components/landing/SkyPageShell";
 import { getAuthOptions } from "@/lib/auth";
 import { getConfiguredProviders } from "@/lib/auth-status";
-import { WELCOME_URL, SITE_NAME } from "@/lib/site";
+import { MAIN_SITE_URL, WELCOME_URL, SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: `Sign in — ${SITE_NAME}`,
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 
 export default async function SignInPage() {
   const session = await getServerSession(getAuthOptions());
-  if (session) redirect("/");
+  if (session) redirect(MAIN_SITE_URL);
 
   const configured = getConfiguredProviders();
   const callbackUrl = WELCOME_URL;

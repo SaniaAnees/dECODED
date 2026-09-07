@@ -42,7 +42,7 @@ export function ProxyHeader() {
             href={GITHUB_URL}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="Wrayle on GitHub"
+            aria-label="uncoded on GitHub"
             className="text-white/85 transition-colors hover:text-white md:inline-flex"
           >
             <GitHubMark />

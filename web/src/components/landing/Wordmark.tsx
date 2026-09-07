@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { BrandMark } from "@/components/landing/BrandMark";
-import { MAIN_SITE_URL, SITE_NAME, WORDMARK_CLASS } from "@/lib/site";
+import { MAIN_SITE_URL, SITE_NAME, SITE_NAME_CLASS } from "@/lib/site";
 
 type WordmarkProps = {
   className?: string;
@@ -17,7 +17,7 @@ export function Wordmark({
   const inner = (
     <>
       <BrandMark className="h-10 w-10" alt="" />
-      <span className={`${WORDMARK_CLASS} ${className}`}>{SITE_NAME}</span>
+      <span className={`${SITE_NAME_CLASS} ${className}`}>{SITE_NAME}</span>
     </>
   );
 

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { signOut } from "next-auth/react";
 import type { Session } from "next-auth";
 import { displayNameFromUser } from "@/lib/display-name";
+import { SIGN_IN_URL } from "@/lib/site";
 import { UserAvatar } from "@/lib/user-avatar";
 
 export function UserProfileMenu({ user }: { user: Session["user"] }) {
@@ -75,7 +76,7 @@ export function UserProfileMenu({ user }: { user: Session["user"] }) {
           <button
             type="button"
             role="menuitem"
-            onClick={() => signOut({ callbackUrl: "/" })}
+            onClick={() => signOut({ callbackUrl: SIGN_IN_URL })}
             className="w-full px-3 py-2.5 text-left font-serif text-[14px] text-white/75 transition-colors hover:bg-white/5 hover:text-white"
           >
             Sign out

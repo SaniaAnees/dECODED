@@ -46,7 +46,7 @@ export function DemoClip({ className, instance = "hero" }: DemoClipProps) {
           loop
           playsInline
           controls={false}
-          aria-label="Wrayle running under Claude Code"
+          aria-label="uncoded running under Claude Code"
         >
           <source src="/demo.mp4" type="video/mp4" />
         </video>

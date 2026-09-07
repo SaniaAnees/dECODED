@@ -1,11 +1,14 @@
 /** Public site brand (UI wordmark). CLI product name remains `decoded`. */
-export const SITE_NAME = "Wrayle";
+export const SITE_NAME = "uncoded";
 
 /** Plane-seal mark — favicon, header, GitHub OAuth, Open Graph. */
 export const BRAND_SEAL_SRC = "/brand/wrayle-seal.png";
 
 /** Shared wordmark typography — serif + letter-spacing. */
 export const WORDMARK_CLASS = "font-serif tracking-[0.18em]";
+
+/** Brand name on the site: lowercase source, rendered as small caps. */
+export const SITE_NAME_CLASS = `${WORDMARK_CLASS} [font-variant-caps:all-small-caps]`;
 
 /**
  * Production URLs — canonical https://wrayle.com (set on Vercel via env vars).
@@ -47,8 +50,14 @@ export const OAUTH_ORIGIN =
 /** Post-OAuth welcome (new users). Prod: https://wrayle.com/welcome */
 export const WELCOME_URL = `${MAIN_SITE_URL.replace(/\/$/, "")}/welcome`;
 
+/** Public privacy policy. Prod: https://wrayle.com/privacy */
+export const PRIVACY_URL = `${MAIN_SITE_URL.replace(/\/$/, "")}/privacy`;
+
 export const GITHUB_URL = "https://github.com/SaniaAnees/dECODED";
 export const ISSUES_URL = `${GITHUB_URL}/issues/new/choose`;
+
+/** Operator contact — also the Google OAuth user-support address. */
+export const CONTACT_EMAIL = "saniaanees91@gmail.com";
 
 /** First-time onboarding: install, then start. Same two lines on macOS and Linux. */
 export const SETUP_MAC = `curl -fsSL https://raw.githubusercontent.com/SaniaAnees/dECODED/main/install.sh | sh

@@ -47,7 +47,11 @@ function buildCookieOptions(): NonNullable<NextAuthOptions["cookies"]> {
       name: secure
         ? "__Secure-next-auth.session-token"
         : "next-auth.session-token",
-      options: shared,
+      options: {
+        ...shared,
+        // Persistent cookie — close laptop/browser and stay signed in.
+        maxAge: SESSION_MAX_AGE_SEC,
+      },
     },
     callbackUrl: {
       name: secure
@@ -90,6 +94,9 @@ function buildProviders() {
       GoogleProvider({
         clientId: process.env.AUTH_GOOGLE_ID!,
         clientSecret: process.env.AUTH_GOOGLE_SECRET!,
+        authorization: {
+          params: { prompt: "select_account" },
+        },
       }),
     );
   }

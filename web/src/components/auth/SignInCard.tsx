@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { signIn } from "next-auth/react";
 import type { AuthProviderId } from "@/lib/auth-status";
-import { MAIN_SITE_URL } from "@/lib/site";
+import { startOAuth } from "@/lib/oauth-client";
+import { MAIN_SITE_URL, PRIVACY_URL } from "@/lib/site";
 
 const OAUTH: { id: AuthProviderId; label: string }[] = [
   { id: "google", label: "Continue with Google" },
@@ -46,7 +46,15 @@ export function SignInCard({
               key={provider.id}
               type="button"
               disabled={!ready}
-              onClick={() => signIn(provider.id, { callbackUrl })}
+              onClick={() =>
+                void startOAuth(
+                  provider.id,
+                  callbackUrl,
+                  provider.id === "google" || provider.id === "microsoft"
+                    ? { prompt: "select_account" }
+                    : undefined,
+                )
+              }
               className="flex w-full items-center justify-center rounded-lg border border-[#f7f1e6]/30 bg-white/10 px-4 py-3.5 font-serif text-[15px] text-[#f7f1e6] transition-colors hover:border-[#f7f1e6]/45 hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-40"
             >
               {provider.label}
@@ -54,6 +62,15 @@ export function SignInCard({
           );
         })}
       </div>
+
+      <p className="mt-8 text-center font-serif text-[13px] text-[#f7f1e6]/45">
+        <a
+          href={PRIVACY_URL}
+          className="underline-offset-4 transition-colors hover:text-[#f7f1e6]/80 hover:underline"
+        >
+          Privacy
+        </a>
+      </p>
     </div>
   );
 }

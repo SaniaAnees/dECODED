@@ -16,7 +16,7 @@ export function BetaForm({
 }) {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<
-    "idle" | "saving" | "processing" | "joined"
+    "idle" | "saving" | "processing" | "joined" | "error"
   >("idle");
 
   const handleJoin = async (e: React.FormEvent) => {
@@ -33,14 +33,14 @@ export function BetaForm({
         body: JSON.stringify({ email: value }),
       });
       if (!res.ok) {
-        setStatus("idle");
+        setStatus("error");
         return;
       }
       setStatus("processing");
       await new Promise((resolve) => setTimeout(resolve, 450));
       setStatus("joined");
     } catch {
-      setStatus("idle");
+      setStatus("error");
     }
   };
 
@@ -56,6 +56,19 @@ export function BetaForm({
         )}
       >
         {success}
+      </p>
+    );
+  }
+
+  if (status === "error") {
+    return (
+      <p
+        className={cn(
+          "flex min-h-[2.5rem] items-center font-serif text-sm italic",
+          hero ? "text-[#f1e6c8]/80" : "text-dusk"
+        )}
+      >
+        Couldn&apos;t save — try again in a moment.
       </p>
     );
   }
