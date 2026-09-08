@@ -1,4 +1,4 @@
-/** Centered Uncoded plane — gentle hover for auth loading screens. */
+/** Centered usecoded plane — gentle hover for auth loading screens. */
 export function AuthFlowPlane() {
   return (
     <div className="auth-flow-plane mx-auto mb-6" aria-hidden>

@@ -44,7 +44,7 @@ export function DemoClip({ className, lazy = false }: DemoClipProps) {
           loop
           playsInline
           controls={false}
-          aria-label="uncoded running under Claude Code"
+          aria-label="usecoded running under Claude Code"
         >
           <source src="/demo.mp4" type="video/mp4" />
         </video>

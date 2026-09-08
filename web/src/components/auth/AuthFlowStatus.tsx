@@ -10,7 +10,7 @@ export function AuthFlowStatus({
   label: string;
   title: string;
   subtitle: string;
-  /** Defaults to the Uncoded plane. Pass e.g. Google icon for OAuth step. */
+  /** Defaults to the usecoded plane. Pass e.g. Google icon for OAuth step. */
   visual?: ReactNode;
 }) {
   return (
