@@ -18,8 +18,13 @@ export function Footer() {
       <div aria-hidden className="pointer-events-none absolute inset-0">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/footer-space.jpg"
+          src="/footer-space.webp"
           alt=""
+          width={1536}
+          height={1024}
+          loading="lazy"
+          decoding="async"
+          fetchPriority="low"
           className="footer-space-print h-full w-full object-cover object-[50%_45%]"
         />
         <div

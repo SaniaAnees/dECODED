@@ -80,8 +80,9 @@ export default function ProxyPage() {
           </p>
           {hasProofGif ? (
             <LiveGif
-              src="/mistral-cache.gif?v=3"
+              src="/mistral-cache.gif"
               alt="Windows PowerShell: decoded proxy on the left, Mistral cache probe on the right"
+              lazy
               className="mt-10 w-full rounded-lg border border-line shadow-[0_20px_60px_rgba(0,0,0,0.35)]"
               width={960}
               height={640}

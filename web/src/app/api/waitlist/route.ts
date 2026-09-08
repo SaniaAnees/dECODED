@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { isDatabaseConfigured } from "@/db";
 import { addWaitlistEmail } from "@/db/dal/waitlist";
 
+export const preferredRegion = ["bom1", "iad1"];
+
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(request: Request) {

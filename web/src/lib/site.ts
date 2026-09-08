@@ -2,7 +2,7 @@
 export const SITE_NAME = "uncoded";
 
 /** Plane-seal mark — favicon, header, GitHub OAuth, Open Graph. */
-export const BRAND_SEAL_SRC = "/brand/wrayle-seal.png";
+export const BRAND_SEAL_SRC = "/brand/wrayle-seal-sm.png";
 
 /** Shared wordmark typography — serif + letter-spacing. */
 export const WORDMARK_CLASS = "font-serif tracking-[0.18em]";

@@ -31,7 +31,7 @@ export function Hero() {
             <BetaForm variant="hero" />
           </div>
         </div>
-        <DemoClip instance="hero" />
+        <DemoClip />
       </div>
     </section>
   );

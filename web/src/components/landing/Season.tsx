@@ -40,7 +40,7 @@ export function Season() {
           </Link>
         </div>
 
-        <DemoClip instance="season" />
+        <DemoClip lazy />
       </div>
     </section>
   );

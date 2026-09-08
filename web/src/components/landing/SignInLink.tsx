@@ -5,13 +5,7 @@ import { UserProfileMenu } from "@/components/auth/UserProfileMenu";
 import { SIGN_IN_URL } from "@/lib/site";
 
 export function SignInLink() {
-  const { data: session, status } = useSession();
-
-  if (status === "loading") {
-    return (
-      <span className="inline-block h-9 w-24 animate-pulse rounded-full bg-white/10" />
-    );
-  }
+  const { data: session } = useSession();
 
   if (session?.user) {
     return <UserProfileMenu user={session.user} />;

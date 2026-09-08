@@ -9,13 +9,15 @@ const newsreader = Newsreader({
   variable: "--font-newsreader",
   subsets: ["latin"],
   style: ["normal", "italic"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600"],
+  display: "swap",
 });
 
 const ibmPlexMono = IBM_Plex_Mono({
   variable: "--font-ibm-plex-mono",
   subsets: ["latin"],
   weight: ["400", "500"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -25,7 +27,7 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "48x48" },
-      { url: "/icon.png", type: "image/png", sizes: "512x512" },
+      { url: "/icon.png", type: "image/png", sizes: "192x192" },
     ],
     apple: [{ url: "/apple-icon.png", sizes: "180x180" }],
   },
@@ -34,13 +36,13 @@ export const metadata: Metadata = {
     description: "Coding agents waste tokens. We're building one that doesn't.",
     type: "website",
     siteName: SITE_NAME,
-    images: [{ url: "/opengraph-image.png", width: 1200, height: 630 }],
+    images: [{ url: "/opengraph-image.jpg", width: 1200, height: 630 }],
   },
   twitter: {
     card: "summary_large_image",
     title: SITE_NAME,
     description: "Coding agents waste tokens. We're building one that doesn't.",
-    images: ["/opengraph-image.png"],
+    images: ["/opengraph-image.jpg"],
   },
 };
 

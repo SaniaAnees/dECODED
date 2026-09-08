@@ -7,9 +7,11 @@ export function AuthFlowBackdrop() {
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src="/sky.jpg"
+        src="/sky.webp"
         alt=""
         className="hero-sky__img sky-print h-full w-full object-cover object-[50%_42%]"
+        decoding="async"
+        fetchPriority="low"
       />
       <div className="auth-flow-backdrop__sky-wash absolute inset-0" />
       <div className="auth-flow-backdrop__sky-sparkle absolute inset-0" />

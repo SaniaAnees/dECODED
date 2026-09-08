@@ -1,51 +1,32 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
-/** Each instance gets its own decoder so a second copy of the same GIF still animates. */
+/** Native img — no extra fetch/blob copy (that downloaded the GIF twice). */
 export function LiveGif({
   src,
   alt,
   className,
   width,
   height,
+  lazy = false,
 }: {
   src: string;
   alt: string;
   className?: string;
   width?: number;
   height?: number;
+  lazy?: boolean;
 }) {
-  const [url, setUrl] = useState(src);
-
-  useEffect(() => {
-    let cancelled = false;
-    let objectUrl: string | undefined;
-
-    fetch(src)
-      .then((res) => res.blob())
-      .then((blob) => {
-        if (cancelled) return;
-        objectUrl = URL.createObjectURL(blob);
-        setUrl(objectUrl);
-      })
-      .catch(() => {});
-
-    return () => {
-      cancelled = true;
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
-    };
-  }, [src]);
-
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={url}
+      src={src}
       alt={alt}
       className={className}
       width={width}
       height={height}
       decoding="async"
+      loading={lazy ? "lazy" : "eager"}
+      fetchPriority={lazy ? "low" : "low"}
     />
   );
 }

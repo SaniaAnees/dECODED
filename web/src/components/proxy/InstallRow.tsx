@@ -36,11 +36,13 @@ export function InstallRow() {
             {existsSync(gif) ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={`/${platform.file}?v=2`}
+                src={`/${platform.file}`}
                 alt={platform.alt}
                 className="mt-3 w-full rounded-md border border-line"
                 width={720}
                 height={480}
+                loading="lazy"
+                decoding="async"
               />
             ) : null}
           </article>
