@@ -1,5 +1,5 @@
 /** Public site brand (UI wordmark). CLI product name remains `decoded`. */
-export const SITE_NAME = "uncoded";
+export const SITE_NAME = "usecoded";
 
 /** Plane-seal mark — favicon, header, GitHub OAuth, Open Graph. */
 export const BRAND_SEAL_SRC = "/brand/wrayle-seal-sm.png";
