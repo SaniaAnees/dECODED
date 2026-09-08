@@ -3,7 +3,10 @@ import { DemoClip } from "@/components/landing/DemoClip";
 
 export function Hero() {
   return (
-    <section id="hero" className="relative min-h-[92vh] overflow-hidden">
+    <section
+      id="start"
+      className="relative min-h-[92vh] scroll-mt-[4.5rem] overflow-hidden"
+    >
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 z-[2]"
@@ -24,7 +27,7 @@ export function Hero() {
               We&apos;re building one that doesn&apos;t.
             </span>
           </h1>
-          <div id="start" className="mt-10">
+          <div className="mt-10">
             <BetaForm variant="hero" />
           </div>
         </div>

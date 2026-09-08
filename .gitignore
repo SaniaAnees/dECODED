@@ -19,3 +19,5 @@ testdata/manual/
 cmd/cacheprobe/
 testdata/probe-workspace/
 architecture.md
+.vercel
+.env*

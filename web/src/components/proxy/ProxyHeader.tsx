@@ -1,7 +1,6 @@
 "use client";
 
-import { GITHUB_URL, MAIN_SITE_URL } from "@/lib/site";
-import { GitHubMark } from "@/components/landing/GitHubMark";
+import { MAIN_SITE_URL } from "@/lib/site";
 import { SignInLink } from "@/components/landing/SignInLink";
 import { Wordmark } from "@/components/landing/Wordmark";
 
@@ -38,15 +37,6 @@ export function ProxyHeader() {
 
         <div className="flex items-center gap-5">
           <SignInLink />
-          <a
-            href={GITHUB_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="uncoded on GitHub"
-            className="text-white/85 transition-colors hover:text-white md:inline-flex"
-          >
-            <GitHubMark />
-          </a>
         </div>
       </div>
 

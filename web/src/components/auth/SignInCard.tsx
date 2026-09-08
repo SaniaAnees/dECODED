@@ -46,15 +46,17 @@ export function SignInCard({
               key={provider.id}
               type="button"
               disabled={!ready}
-              onClick={() =>
-                void startOAuth(
+              onClick={() => {
+                startOAuth(
                   provider.id,
                   callbackUrl,
                   provider.id === "google" || provider.id === "microsoft"
                     ? { prompt: "select_account" }
                     : undefined,
-                )
-              }
+                ).catch(() => {
+                  window.location.href = `/api/auth/signin/${provider.id}?callbackUrl=${encodeURIComponent(callbackUrl)}`;
+                });
+              }}
               className="flex w-full items-center justify-center rounded-lg border border-[#f7f1e6]/30 bg-white/10 px-4 py-3.5 font-serif text-[15px] text-[#f7f1e6] transition-colors hover:border-[#f7f1e6]/45 hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-40"
             >
               {provider.label}

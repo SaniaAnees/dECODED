@@ -1,13 +1,28 @@
 import type { AuthProviderId } from "@/lib/auth-status";
 import { OAUTH_ORIGIN } from "@/lib/site";
 
-/** POST to NextAuth on OAUTH_ORIGIN (localhost locally — Google rejects auth.localhost). */
+/** Same host as /api/auth — avoids client bundles falling back to localhost. */
+function resolveAuthOrigin(): string {
+  if (typeof window !== "undefined") {
+    const { hostname, origin, protocol, port } = window.location;
+    if (hostname === "localhost" || hostname.startsWith("auth.")) {
+      // Google OAuth rejects auth.localhost; API still lives on localhost.
+      if (hostname.endsWith(".localhost") && hostname !== "localhost") {
+        return `${protocol}//localhost:${port || "3000"}`;
+      }
+      return origin;
+    }
+  }
+  return OAUTH_ORIGIN;
+}
+
+/** POST to NextAuth on the auth host (localhost locally — Google rejects auth.localhost). */
 export async function startOAuth(
   provider: AuthProviderId,
   callbackUrl: string,
   authorizationParams?: Record<string, string>,
 ): Promise<void> {
-  const authOrigin = OAUTH_ORIGIN;
+  const authOrigin = resolveAuthOrigin();
 
   const csrfResponse = await fetch(`${authOrigin}/api/auth/csrf`, {
     credentials: "include",

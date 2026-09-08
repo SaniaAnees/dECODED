@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ISSUES_URL } from "@/lib/site";
+import { ScrollLink } from "@/components/landing/ScrollLink";
 import { Wordmark } from "@/components/landing/Wordmark";
 
 export function Footer() {
@@ -38,12 +39,12 @@ export function Footer() {
             className="text-lg font-medium text-[#f7f1e6]/90"
           />
           <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
-            <a
+            <ScrollLink
               href="/#start"
               className="font-serif text-[15px] text-[#f7f1e6]/72 transition-colors hover:text-[#f7f1e6]"
             >
               Waitlist
-            </a>
+            </ScrollLink>
             <a
               href={ISSUES_URL}
               target="_blank"

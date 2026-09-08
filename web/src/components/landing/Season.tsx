@@ -4,17 +4,17 @@ import { PROXY_SITE_URL, WORDMARK_CLASS } from "@/lib/site";
 
 export function Season() {
   return (
-    <section id="now" className="mx-auto max-w-6xl scroll-mt-24 px-6 py-24 md:px-8 md:py-32">
+    <section
+      id="now"
+      className="mx-auto max-w-6xl scroll-mt-[4.5rem] px-6 py-24 md:px-8 md:py-32"
+    >
         <p className="font-mono text-[11px] tracking-[0.28em] text-gilt">
           THIS SEASON
         </p>
 
       <div className="mt-10 grid grid-cols-1 items-center gap-12 md:grid-cols-2 md:gap-16">
-        <div className="max-w-xl">
-          <p
-            id="decoded"
-            className={`${WORDMARK_CLASS} scroll-mt-24 text-2xl text-moon md:text-3xl`}
-          >
+        <div id="decoded" className="max-w-xl scroll-mt-[4.5rem]">
+          <p className={`${WORDMARK_CLASS} text-2xl text-moon md:text-3xl`}>
             dECODED
           </p>
           <h2 className="mt-4 font-serif text-4xl font-medium leading-tight text-moon md:text-5xl">

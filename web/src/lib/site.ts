@@ -27,6 +27,16 @@ export const PROD_URLS = {
 
 const onVercel = Boolean(process.env.VERCEL);
 
+function authOriginFromPublicUrl(): string | undefined {
+  const raw = process.env.NEXT_PUBLIC_AUTH_URL?.trim();
+  if (!raw) return undefined;
+  try {
+    return new URL(raw.includes("://") ? raw : `https://${raw}`).origin;
+  } catch {
+    return undefined;
+  }
+}
+
 /** Main marketing site. Prod: https://wrayle.com */
 export const MAIN_SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ??
@@ -44,6 +54,7 @@ export const SIGN_IN_URL =
 
 /** OAuth API origin — must match NEXTAUTH_URL and Google redirect URI host. */
 export const OAUTH_ORIGIN =
+  authOriginFromPublicUrl() ??
   process.env.NEXTAUTH_URL?.replace(/\/$/, "") ??
   (onVercel ? PROD_URLS.auth : "http://localhost:3000");
 
