@@ -142,7 +142,7 @@ export function PricingCheckoutActions() {
       if (confirmData.plan === "pro") {
         setPlan("pro");
         setPhase("done");
-        setMessage(`You're on ${PLAN_PAID.name}.`);
+        setMessage(null);
         setBusy(false);
         return;
       }
@@ -157,7 +157,7 @@ export function PricingCheckoutActions() {
         if (status?.plan === "pro") {
           setPlan("pro");
           setPhase("done");
-          setMessage(`You're on ${PLAN_PAID.name}.`);
+          setMessage(null);
           setBusy(false);
           return;
         }
@@ -173,7 +173,7 @@ export function PricingCheckoutActions() {
       if (status?.plan === "pro") {
         setPlan("pro");
         setPhase("done");
-        setMessage(`You're on ${PLAN_PAID.name}.`);
+        setMessage(null);
         setBusy(false);
         return;
       }
@@ -219,7 +219,7 @@ export function PricingCheckoutActions() {
       if (data.code === "already_pro") {
         setPlan("pro");
         setPhase("done");
-        setMessage(`You're on ${PLAN_PAID.name}.`);
+        setMessage(null);
         setBusy(false);
         return;
       }
@@ -272,14 +272,9 @@ export function PricingCheckoutActions() {
   // Instant CTAs — no "Loading…" gate on first paint.
   if (plan === "pro") {
     return (
-      <div>
-        <button type="button" disabled className={btnPro}>
-          You&apos;re on Pro
-        </button>
-        {message ? (
-          <p className="mt-3 text-center font-serif text-sm text-mist">{message}</p>
-        ) : null}
-      </div>
+      <button type="button" disabled className={btnPro}>
+        You&apos;re on Pro
+      </button>
     );
   }
 
