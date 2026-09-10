@@ -4,13 +4,6 @@ import { useCallback, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { CONTACT_EMAIL, PLAN_PAID, SIGN_IN_URL } from "@/lib/site";
 
-type CheckoutBootstrap = {
-  keyId: string;
-  subscriptionId: string;
-  name: string;
-  description: string;
-};
-
 type BillingStatus = {
   plan: string;
   status: string;
@@ -43,8 +36,8 @@ declare global {
   }
 }
 
-const POLL_MS = 2000;
-const POLL_TIMEOUT_MS = 60_000;
+const POLL_MS = 1500;
+const POLL_TIMEOUT_MS = 45_000;
 
 async function loadRazorpayScript(): Promise<void> {
   if (window.Razorpay) return;
@@ -80,21 +73,23 @@ async function fetchBillingStatus(): Promise<BillingStatus | null> {
 
 function signInHref(): string {
   const base = SIGN_IN_URL.replace(/\/$/, "");
-  const callback = `${typeof window !== "undefined" ? window.location.origin : ""}/pricing`;
+  const callback =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/pricing`
+      : "/pricing";
   const sep = base.includes("?") ? "&" : "?";
   return `${base}${sep}callbackUrl=${encodeURIComponent(callback)}`;
 }
 
 const btnBase =
   "mt-6 inline-flex h-11 w-full items-center justify-center rounded-md border font-serif text-[16px] transition-colors disabled:cursor-not-allowed disabled:opacity-60";
-const btnPro =
-  `${btnBase} border-gilt/60 bg-gilt/15 text-moon hover:border-gilt hover:bg-gilt/25`;
-const btnFree =
-  `${btnBase} border-line bg-transparent text-moon hover:border-gilt/50 hover:bg-ink/40`;
+const btnPro = `${btnBase} border-gilt/60 bg-gilt/15 text-moon hover:border-gilt hover:bg-gilt/25`;
+const btnFree = `${btnBase} border-line bg-transparent text-moon hover:border-gilt/50 hover:bg-ink/40`;
 
 export function PricingCheckoutActions() {
   const { data: session, status: authStatus } = useSession();
-  const [plan, setPlan] = useState<"free" | "pro" | "unknown">("unknown");
+  // Default Free immediately — never block first paint on billing fetch.
+  const [plan, setPlan] = useState<"free" | "pro">("free");
   const [busy, setBusy] = useState(false);
   const [phase, setPhase] = useState<
     "idle" | "starting" | "checkout" | "confirming" | "done" | "timeout" | "error"
@@ -109,23 +104,52 @@ export function PricingCheckoutActions() {
     }
     try {
       const status = await fetchBillingStatus();
-      if (!status) {
-        setPlan("free");
-        return;
-      }
-      setPlan(status.plan === "pro" ? "pro" : "free");
+      if (status?.plan === "pro") setPlan("pro");
+      else setPlan("free");
     } catch {
-      setPlan("free");
+      // keep current plan
     }
   }, [authStatus]);
 
   useEffect(() => {
+    if (authStatus === "loading") return;
     void refreshPlan();
-  }, [refreshPlan]);
+  }, [authStatus, refreshPlan]);
 
-  const pollUntilPro = useCallback(async (paidId: string | null) => {
+  const confirmAndPoll = useCallback(async (response: RazorpayHandlerResponse) => {
+    const paidId = response.razorpay_payment_id || null;
+    setPaymentId(paidId);
     setPhase("confirming");
-    setMessage("Payment received — confirming Pro…");
+    setMessage("Payment received — unlocking Pro…");
+    setBusy(true);
+
+    // Immediate server unlock (signature-verified) — do not wait on webhook alone.
+    try {
+      const confirmRes = await fetch("/api/razorpay/confirm", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          razorpay_payment_id: response.razorpay_payment_id,
+          razorpay_subscription_id: response.razorpay_subscription_id,
+          razorpay_signature: response.razorpay_signature,
+        }),
+      });
+      const confirmData = (await confirmRes.json()) as {
+        plan?: string;
+        pending?: boolean;
+      };
+      if (confirmData.plan === "pro") {
+        setPlan("pro");
+        setPhase("done");
+        setMessage(`You're on ${PLAN_PAID.name}.`);
+        setBusy(false);
+        return;
+      }
+    } catch {
+      // fall through to poll (webhook may still land)
+    }
+
     const started = Date.now();
     while (Date.now() - started < POLL_TIMEOUT_MS) {
       try {
@@ -134,6 +158,7 @@ export function PricingCheckoutActions() {
           setPlan("pro");
           setPhase("done");
           setMessage(`You're on ${PLAN_PAID.name}.`);
+          setBusy(false);
           return;
         }
       } catch {
@@ -141,11 +166,27 @@ export function PricingCheckoutActions() {
       }
       await new Promise((r) => setTimeout(r, POLL_MS));
     }
+
+    // Last chance — webhook often already wrote Pro.
+    try {
+      const status = await fetchBillingStatus();
+      if (status?.plan === "pro") {
+        setPlan("pro");
+        setPhase("done");
+        setMessage(`You're on ${PLAN_PAID.name}.`);
+        setBusy(false);
+        return;
+      }
+    } catch {
+      // ignore
+    }
+
     setPhase("timeout");
+    setBusy(false);
     setMessage(
       paidId
-        ? `Payment received but Pro is not unlocked yet. Email ${CONTACT_EMAIL} with Razorpay payment id ${paidId}.`
-        : `Payment received but Pro is not unlocked yet. Email ${CONTACT_EMAIL} with your Razorpay payment id.`,
+        ? `Almost there — refresh this page. If you’re still Free, email ${CONTACT_EMAIL} with payment id ${paidId}.`
+        : `Almost there — refresh this page. If you’re still Free, email ${CONTACT_EMAIL} with your Razorpay payment id.`,
     );
   }, []);
 
@@ -179,45 +220,38 @@ export function PricingCheckoutActions() {
         setPlan("pro");
         setPhase("done");
         setMessage(`You're on ${PLAN_PAID.name}.`);
+        setBusy(false);
         return;
       }
 
       if (!res.ok || !data.keyId || !data.subscriptionId) {
         setPhase("error");
         setMessage(data.error || "Could not start checkout.");
+        setBusy(false);
         return;
       }
-
-      const bootstrap: CheckoutBootstrap = {
-        keyId: data.keyId,
-        subscriptionId: data.subscriptionId,
-        name: data.name || "usecoded",
-        description: data.description || "Pro",
-      };
 
       await loadRazorpayScript();
       if (!window.Razorpay) {
         setPhase("error");
         setMessage("Checkout failed to load. Refresh and try again.");
+        setBusy(false);
         return;
       }
 
       setPhase("checkout");
       const rzp = new window.Razorpay({
-        key: bootstrap.keyId,
-        subscription_id: bootstrap.subscriptionId,
-        name: bootstrap.name,
-        description: bootstrap.description,
+        key: data.keyId,
+        subscription_id: data.subscriptionId,
+        name: data.name || "usecoded",
+        description: data.description || "Pro",
         prefill: {
           email: session?.user?.email || undefined,
           name: session?.user?.name || undefined,
         },
         theme: { color: "#c4a574" },
         handler: (response) => {
-          const id = response.razorpay_payment_id || null;
-          setPaymentId(id);
-          // Never write Pro in the browser — poll the server.
-          void pollUntilPro(id);
+          void confirmAndPoll(response);
         },
         modal: {
           ondismiss: () => {
@@ -233,22 +267,9 @@ export function PricingCheckoutActions() {
       setMessage("Could not start checkout. Try again.");
       setBusy(false);
     }
-  }, [busy, pollUntilPro, session?.user?.email, session?.user?.name]);
+  }, [busy, confirmAndPoll, session?.user?.email, session?.user?.name]);
 
-  useEffect(() => {
-    if (phase === "done" || phase === "timeout" || phase === "error") {
-      setBusy(false);
-    }
-  }, [phase]);
-
-  if (authStatus === "loading" || plan === "unknown") {
-    return (
-      <button type="button" disabled className={btnPro}>
-        Loading…
-      </button>
-    );
-  }
-
+  // Instant CTAs — no "Loading…" gate on first paint.
   if (plan === "pro") {
     return (
       <div>
@@ -274,7 +295,7 @@ export function PricingCheckoutActions() {
     phase === "starting"
       ? "Starting checkout…"
       : phase === "confirming"
-        ? "Confirming…"
+        ? "Unlocking Pro…"
         : phase === "checkout"
           ? "Checkout open…"
           : "Upgrade to Pro";
@@ -312,6 +333,7 @@ export function PricingCheckoutActions() {
 
 export function StartFreeButton() {
   const { status } = useSession();
+  // Instant CTA — don’t wait on session loading.
   if (status === "authenticated") {
     return (
       <a href="/" className={btnFree}>
