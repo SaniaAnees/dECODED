@@ -8,7 +8,7 @@ import { InstallRow } from "@/components/proxy/InstallRow";
 import { ProxyHeader } from "@/components/proxy/ProxyHeader";
 
 export const metadata: Metadata = {
-  title: "know more",
+  title: "Proxy docs",
 };
 
 export default function ProxyPage() {

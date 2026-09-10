@@ -1,7 +1,51 @@
+"use client";
+
 import Link from "next/link";
-import { ISSUES_URL } from "@/lib/site";
+import { usePathname } from "next/navigation";
 import { ScrollLink } from "@/components/landing/ScrollLink";
 import { Wordmark } from "@/components/landing/Wordmark";
+
+const linkClass =
+  "font-serif text-[15px] text-[#f7f1e6]/72 transition-colors hover:text-[#f7f1e6]";
+
+const links = [
+  { href: "/terms", label: "Terms", kind: "page" as const },
+  { href: "/refund", label: "Refund", kind: "page" as const },
+  { href: "/privacy", label: "Privacy", kind: "page" as const },
+  { href: "/pricing", label: "Pricing", kind: "page" as const },
+  { href: "/feedback", label: "Feedback", kind: "page" as const },
+  { href: "/#waitlist", label: "Updates", kind: "scroll" as const },
+];
+
+function samePath(pathname: string, href: string) {
+  const path = pathname.replace(/\/$/, "") || "/";
+  const target = href.replace(/\/$/, "") || "/";
+  return path === target;
+}
+
+function PageLink({
+  href,
+  children,
+}: {
+  href: string;
+  children: React.ReactNode;
+}) {
+  const pathname = usePathname();
+
+  return (
+    <Link
+      href={href}
+      className={linkClass}
+      onClick={(e) => {
+        if (!samePath(pathname, href)) return;
+        e.preventDefault();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }}
+    >
+      {children}
+    </Link>
+  );
+}
 
 export function Footer() {
   return (
@@ -43,29 +87,39 @@ export function Footer() {
             link={false}
             className="text-lg font-medium text-[#f7f1e6]/90"
           />
-          <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
-            <ScrollLink
-              href="/#start"
-              className="font-serif text-[15px] text-[#f7f1e6]/72 transition-colors hover:text-[#f7f1e6]"
-            >
-              Waitlist
-            </ScrollLink>
-            <a
-              href={ISSUES_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-serif text-[15px] text-[#f7f1e6]/72 transition-colors hover:text-[#f7f1e6]"
-            >
-              Feedback
-            </a>
-            <Link
-              href="/privacy"
-              className="font-serif text-[15px] text-[#f7f1e6]/72 transition-colors hover:text-[#f7f1e6]"
-            >
-              Privacy
-            </Link>
-            <p className="font-serif text-[15px] text-[#f7f1e6]/45">© 2026</p>
-          </div>
+          <nav
+            aria-label="Footer"
+            className="flex flex-wrap items-center gap-x-2 gap-y-3"
+          >
+            {links.map((link, index) => (
+              <span key={link.href} className="flex items-center gap-x-2">
+                {index > 0 ? (
+                  <span
+                    aria-hidden
+                    className="font-serif text-[15px] text-[#f7f1e6]/35"
+                  >
+                    ·
+                  </span>
+                ) : null}
+                {link.kind === "page" ? (
+                  <PageLink href={link.href}>{link.label}</PageLink>
+                ) : (
+                  <ScrollLink href={link.href} className={linkClass}>
+                    {link.label}
+                  </ScrollLink>
+                )}
+              </span>
+            ))}
+            <span className="flex items-center gap-x-2">
+              <span
+                aria-hidden
+                className="font-serif text-[15px] text-[#f7f1e6]/35"
+              >
+                ·
+              </span>
+              <p className="font-serif text-[15px] text-[#f7f1e6]/45">© 2026</p>
+            </span>
+          </nav>
         </div>
       </div>
     </footer>

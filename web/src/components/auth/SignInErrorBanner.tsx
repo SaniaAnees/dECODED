@@ -3,12 +3,14 @@
 import { useSearchParams } from "next/navigation";
 
 const MESSAGES: Record<string, string> = {
+  OAuthAccountNotLinked:
+    "That email is already on your account with the other sign-in method. Use the same provider you signed up with, or try again — we now link Google and GitHub when the email matches.",
   OAuthCallback:
-    "Google could not finish sign-in. Try Continue with Google again.",
+    "Sign-in could not finish. Try again in a moment.",
   OAuthCreateAccount:
     "Could not save your account. Try again in a moment.",
   Callback:
-    "Sign-in failed after Google returned. Try another provider, or try again in a moment.",
+    "Sign-in failed after the provider returned. Try again in a moment.",
   Configuration:
     "Sign-in is misconfigured. Try again in a moment.",
   AccessDenied: "Access was denied.",

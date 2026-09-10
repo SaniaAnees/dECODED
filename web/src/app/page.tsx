@@ -4,8 +4,8 @@ import { HashScroll } from "@/components/landing/ScrollLink";
 import { SkyPageShell } from "@/components/landing/SkyPageShell";
 import { Season } from "@/components/landing/Season";
 import { Machine } from "@/components/landing/Machine";
-import { NextSeason } from "@/components/landing/NextSeason";
 import { Faq } from "@/components/landing/Faq";
+import { Waitlist } from "@/components/landing/Waitlist";
 import { Footer } from "@/components/landing/Footer";
 
 export default function Home() {
@@ -17,8 +17,8 @@ export default function Home() {
         <Hero />
         <Season />
         <Machine />
-        <NextSeason />
         <Faq />
+        <Waitlist />
       </main>
       <Footer />
     </SkyPageShell>

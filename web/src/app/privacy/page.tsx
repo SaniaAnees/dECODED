@@ -8,12 +8,12 @@ import { PRIVACY_URL, SITE_NAME } from "@/lib/site";
 export const metadata: Metadata = {
   title: `Privacy — ${SITE_NAME}`,
   description:
-    "How usecoded handles waitlist email, Google sign-in, and local API keys.",
+    "What usecoded collects for accounts, waitlist, and Razorpay Pro billing — and what we do not.",
   alternates: { canonical: PRIVACY_URL },
   openGraph: {
     title: `Privacy — ${SITE_NAME}`,
     description:
-      "Waitlist email, Google sign-in, and keys that stay on your machine.",
+      "Accounts, waitlist, Razorpay for Pro. We do not collect your repo through the website.",
     url: PRIVACY_URL,
     type: "website",
   },

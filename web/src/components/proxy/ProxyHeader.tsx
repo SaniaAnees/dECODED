@@ -1,6 +1,5 @@
 "use client";
 
-import { MAIN_SITE_URL } from "@/lib/site";
 import { SignInLink } from "@/components/landing/SignInLink";
 import { Wordmark } from "@/components/landing/Wordmark";
 
@@ -20,7 +19,7 @@ export function ProxyHeader() {
   return (
     <header className="relative z-40">
       <div className="mx-auto flex h-[4.5rem] max-w-6xl items-center justify-between px-6 md:px-8">
-        <Wordmark className="text-lg font-medium text-white" href={MAIN_SITE_URL} />
+        <Wordmark className="text-lg font-medium text-white" href="/" />
 
         <nav className="hidden items-center gap-8 md:flex">
           {links.map((link) => (

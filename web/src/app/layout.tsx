@@ -23,17 +23,18 @@ const ibmPlexMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(MAIN_SITE_URL),
   title: SITE_NAME,
-  description: "Coding agents waste tokens. We're building one that doesn't.",
+  description: "The agentic harness that cuts repeated context spend without moving keys off your machine.",
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "48x48" },
-      { url: "/icon.png", type: "image/png", sizes: "192x192" },
+      { url: "/icon.png", type: "image/png", sizes: "512x512" },
     ],
+    shortcut: "/favicon.ico",
     apple: [{ url: "/apple-icon.png", sizes: "180x180" }],
   },
   openGraph: {
     title: SITE_NAME,
-    description: "Coding agents waste tokens. We're building one that doesn't.",
+    description: "The agentic harness that cuts repeated context spend without moving keys off your machine.",
     type: "website",
     siteName: SITE_NAME,
     images: [{ url: "/opengraph-image.jpg", width: 1200, height: 630 }],
@@ -41,7 +42,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: SITE_NAME,
-    description: "Coding agents waste tokens. We're building one that doesn't.",
+    description: "The agentic harness that cuts repeated context spend without moving keys off your machine.",
     images: ["/opengraph-image.jpg"],
   },
 };

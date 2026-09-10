@@ -1,12 +1,16 @@
+import Link from "next/link";
 import { ScrollLink } from "@/components/landing/ScrollLink";
 import { SignInLink } from "@/components/landing/SignInLink";
 import { Wordmark } from "@/components/landing/Wordmark";
 
-const links = [
-  { href: "/#now", label: "Now" },
-  { href: "/#next", label: "Next" },
-  { href: "/#decoded", label: "dECODED" },
+const scrollLinks = [
+  { href: "/#product", label: "Product" },
+  { href: "/#how", label: "How" },
+  { href: "/#faq", label: "FAQ" },
 ];
+
+const linkClass =
+  "font-serif text-[15px] text-white/80 transition-colors hover:text-white";
 
 export function Header() {
   return (
@@ -15,15 +19,14 @@ export function Header() {
         <Wordmark className="text-lg font-medium text-white" href="/" />
 
         <nav className="hidden items-center gap-8 md:flex">
-          {links.map((link) => (
-            <ScrollLink
-              key={link.label}
-              href={link.href}
-              className="font-serif text-[15px] text-white/80 transition-colors hover:text-white"
-            >
+          {scrollLinks.map((link) => (
+            <ScrollLink key={link.label} href={link.href} className={linkClass}>
               {link.label}
             </ScrollLink>
           ))}
+          <Link href="/pricing" className={linkClass}>
+            Pricing
+          </Link>
         </nav>
 
         <div className="flex items-center gap-5">
