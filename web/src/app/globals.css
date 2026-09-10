@@ -55,6 +55,19 @@ body {
   text-shadow: 0 2px 18px rgba(8, 14, 32, 0.45);
 }
 
+/* Policy pages: soft glass on the sky — no cream paper slab. */
+.legal-doc {
+  background: rgba(8, 14, 32, 0.42);
+  border: 1px solid rgba(247, 241, 230, 0.14);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 12px 40px rgba(8, 14, 32, 0.22);
+}
+
+.legal-doc h2 {
+  text-shadow: 0 1px 12px rgba(8, 14, 32, 0.35);
+}
+
 ::selection {
   background: rgba(176, 122, 44, 0.25);
   color: var(--moon);
@@ -221,6 +234,32 @@ body {
   );
 }
 
+/* Pricing plan cards — glass on sky, Pro slightly lifted. */
+.pricing-card {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 12px 40px rgba(8, 14, 32, 0.22);
+  animation: pricing-card-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.pricing-card--pro {
+  box-shadow:
+    0 14px 44px rgba(8, 14, 32, 0.28),
+    0 0 0 1px rgba(228, 180, 92, 0.12);
+  animation-delay: 0.08s;
+}
+
+@keyframes pricing-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Full-page sky backdrop (fixed while content scrolls). */
 .sky-backdrop {
   z-index: 0;
@@ -263,25 +302,72 @@ body {
   border-radius: 4px;
 }
 
+.oauth-btn:not(:disabled):hover {
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.22);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.18),
+    0 10px 28px rgba(8, 14, 32, 0.22);
+}
+
+.oauth-btn__hover-sweep {
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.06) 40%,
+    rgba(255, 255, 255, 0.38) 50%,
+    rgba(255, 255, 255, 0.06) 60%,
+    transparent 100%
+  );
+  transform: translateX(-120%);
+  opacity: 0;
+}
+
+.oauth-btn:not(:disabled):hover .oauth-btn__hover-sweep {
+  animation: oauth-hover-sweep 1.15s ease-in-out infinite;
+}
+
+@keyframes oauth-hover-sweep {
+  0% {
+    transform: translateX(-120%);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(120%);
+    opacity: 0;
+  }
+}
+
 .oauth-btn__ripple {
-  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(228, 180, 92, 0.15) 18%,
+    rgba(228, 180, 92, 0.85) 50%,
+    rgba(228, 180, 92, 0.15) 82%,
+    transparent 100%
+  );
+  transform: translateX(-110%);
   opacity: 0;
 }
 
 .oauth-btn__ripple--active {
-  animation: oauth-ripple 0.45s ease-out forwards;
+  animation: oauth-ripple 0.52s ease-out forwards;
 }
 
 @keyframes oauth-ripple {
   0% {
-    transform: translateX(-100%);
+    transform: translateX(-110%);
     opacity: 0;
   }
-  30% {
+  12% {
     opacity: 1;
   }
   100% {
-    transform: translateX(100%);
+    transform: translateX(110%);
     opacity: 0;
   }
 }
@@ -454,8 +540,13 @@ body {
     animation: none;
   }
 
+  .pricing-card {
+    animation: none;
+  }
+
   .oauth-overlay-icon,
   .oauth-overlay-bar,
+  .oauth-btn__hover-sweep,
   .auth-flow-plane__img {
     animation: none;
   }

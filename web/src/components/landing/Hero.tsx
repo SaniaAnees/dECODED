@@ -1,11 +1,12 @@
-import { BetaForm } from "@/components/landing/BetaForm";
 import { DemoClip } from "@/components/landing/DemoClip";
+import { HeroInstall } from "@/components/landing/HeroInstall";
+import { ScrollLink } from "@/components/landing/ScrollLink";
 
 export function Hero() {
   return (
     <section
       id="start"
-      className="relative min-h-[92vh] scroll-mt-[4.5rem] overflow-hidden"
+      className="relative min-h-[calc(100vh-4.5rem)] scroll-mt-[4.5rem] overflow-hidden"
     >
       <div
         aria-hidden
@@ -16,22 +17,31 @@ export function Hero() {
         }}
       />
 
-      <div className="relative z-10 mx-auto grid min-h-[92vh] max-w-6xl grid-cols-1 items-center px-6 py-12 md:grid-cols-2 md:px-8 md:py-0">
+      <div className="relative z-10 mx-auto grid min-h-[calc(100vh-4.5rem)] max-w-6xl grid-cols-1 items-center gap-10 px-6 py-10 md:grid-cols-[minmax(0,1.02fr)_minmax(0,0.98fr)] md:px-8 md:py-8">
         <div className="max-w-xl">
           <h1
-            className="font-serif text-[1.85rem] font-medium leading-[1.2] text-[#f7f1e6] sm:text-4xl md:text-[2.35rem]"
+            className="font-serif text-[2rem] font-medium leading-[1.12] text-[#f7f1e6] sm:text-[2.45rem] md:text-[3.15rem]"
             style={{ textShadow: "0 2px 18px rgba(8,14,32,0.55)" }}
           >
-            Coding agents waste tokens.
-            <span className="mt-3 block font-normal italic text-[#f7f1e6]/92">
-              We&apos;re building one that doesn&apos;t.
-            </span>
+            The coding harness built for token optimization.
           </h1>
-          <div className="mt-10">
-            <BetaForm variant="hero" />
+          <p className="mt-5 max-w-lg font-serif text-[1.02rem] leading-relaxed text-[#f7f1e6]/84 md:text-[1.08rem]">
+            Cuts repeated context so agent runs cost less. Keys stay on your
+            machine.
+          </p>
+          <div className="mt-7">
+            <HeroInstall />
+          </div>
+          <div className="mt-4">
+            <ScrollLink
+              href="/#how"
+              className="font-serif text-sm text-[#f7f1e6]/70 transition-colors hover:text-[#f7f1e6]"
+            >
+              How it works
+            </ScrollLink>
           </div>
         </div>
-        <DemoClip />
+        <DemoClip className="md:min-w-0" />
       </div>
     </section>
   );

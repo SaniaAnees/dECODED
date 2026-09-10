@@ -126,10 +126,7 @@ function LiveHint({ visible, hero }: { visible: boolean; hero: boolean }) {
   useEffect(() => {
     if (!visible) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce) {
-      setDots(3);
-      return;
-    }
+    if (reduce) return;
     const id = window.setInterval(() => {
       setDots((n) => (n + 1) % 7);
     }, 380);

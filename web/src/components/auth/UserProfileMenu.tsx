@@ -7,6 +7,38 @@ import { displayNameFromUser } from "@/lib/display-name";
 import { SIGN_IN_URL } from "@/lib/site";
 import { UserAvatar } from "@/lib/user-avatar";
 
+function PlanBadge() {
+  const [label, setLabel] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetch("/api/billing/status", {
+          credentials: "include",
+        });
+        if (!res.ok) return;
+        const data = (await res.json()) as { plan?: string };
+        if (!cancelled) {
+          setLabel(data.plan === "pro" ? "Pro" : "Free");
+        }
+      } catch {
+        // ignore
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (!label) return null;
+  return (
+    <p className="mt-1 font-serif text-[11px] tracking-wide text-white/55">
+      Plan: {label}
+    </p>
+  );
+}
+
 export function UserProfileMenu({ user }: { user: Session["user"] }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -72,6 +104,7 @@ export function UserProfileMenu({ user }: { user: Session["user"] }) {
                 {user.email}
               </p>
             ) : null}
+            <PlanBadge />
           </div>
           <button
             type="button"

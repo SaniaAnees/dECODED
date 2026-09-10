@@ -1,15 +1,15 @@
 const notes = [
   {
     title: "Localhost",
-    body: "The proxy listens on your machine. Prompts are not stored on a usecoded server. There is no hosted hop.",
+    body: "The harness listens on your machine. Prompts are not stored on a usecoded server and there is no hosted hop to trust.",
   },
   {
     title: "Your keys",
-    body: "Provider credentials never leave the laptop. The daemon forwards with the header you already use.",
+    body: "Provider credentials stay on the laptop. usecoded forwards with the key header you already use instead of asking for an account relay.",
   },
   {
     title: "Shape, not hostname",
-    body: "Requests are typed from JSON shape — Anthropic or OpenAI — so a gateway host cannot fool the route.",
+    body: "Requests are typed from JSON shape, not whatever hostname they arrived through, so a gateway cannot bluff the route by looking familiar.",
   },
 ];
 
@@ -19,11 +19,16 @@ export function Machine() {
       <hr className="rule" />
       <div className="py-24 md:py-32">
         <p className="font-mono text-[11px] tracking-[0.28em] text-gilt">
-          ON THE MACHINE
+          TRUST
         </p>
         <h2 className="mt-5 max-w-xl font-serif text-4xl font-medium leading-tight text-moon md:text-5xl">
-          Nothing here requires trust in a cloud we do not run.
+          Localhost, keys, shape-not-hostname.
         </h2>
+        <p className="mt-6 max-w-2xl font-serif text-lg leading-relaxed text-mist">
+          The trust boundary is intentionally small: your harness runs locally,
+          your provider key stays local, and routing decisions are based on the
+          request shape the model actually sent.
+        </p>
         <div className="mt-16 grid gap-12 md:grid-cols-3">
           {notes.map((note) => (
             <article key={note.title}>

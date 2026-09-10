@@ -8,24 +8,24 @@ const items = [
     a: "The agent kept reordering tool definitions and drifting the system prompt — whitespace, key order, extra fields. Prefix cache only hits when those bytes stay identical turn to turn. We spent weeks on golden tests for the normalizer before /stats moved.",
   },
   {
+    q: "What is usecoded actually shipping today?",
+    a: "A built agentic harness optimized for token economics: local request normalization, localhost routing, and cache-aware forwarding to your provider. The point is to reduce repeated context spend without introducing a hosted trust hop.",
+  },
+  {
     q: "Do I actually need two terminals?",
-    a: "Yes. One process runs decoded start with DECODED_* upstream URLs — that talks to the lab. A second shell points the agent at localhost with OPENAI_BASE_URL or ANTHROPIC_BASE_URL. Mix them up and traffic skips the proxy entirely.",
+    a: "Usually yes. One process runs usecoded on localhost. A second shell runs the agent and points it at localhost with your provider base URL env vars. Mix those roles up and traffic can skip the harness entirely.",
   },
   {
-    q: "Mistral shows cache hits. Why did Claude sometimes show cached=0?",
-    a: "We measured cached_tokens reliably on Mistral first. Other labs may not expose the field in usage JSON even when the body is clean. We will not quote a savings percent from a counter we cannot read.",
+    q: "Why does the proof demo emphasize Mistral?",
+    a: "Because Mistral is the path where we measured cached_tokens cleanly in usage JSON. Other providers may still return cached=0 even when the request body is stable, so we refuse to market a savings percentage we cannot verify.",
   },
   {
-    q: "What broke when we first put Claude Code behind the proxy?",
-    a: "Stray cache_control on the wrong API shape. Gateways that looked like Anthropic but routed OpenAI JSON. Normalize failures that would have forwarded dirty bodies — we fail closed on those now instead of pass-through.",
+    q: "What broke when this first went behind real coding agents?",
+    a: "Stray cache_control on the wrong API shape, gateways that looked like Anthropic but routed OpenAI JSON, and normalize failures that would have forwarded dirty bodies. Those are exactly the reasons the harness now fails closed instead of pretending everything is fine.",
   },
   {
-    q: "Will this help if the agent rewrites the system prompt every turn?",
-    a: "No. That is the waste we are trying to stop. The proxy keeps the prefix stable when the harness does not fight it. If your agent rewrites context each turn, fix the harness — we cannot cache what never repeats.",
-  },
-  {
-    q: "Is this a coding agent yet?",
-    a: "No. What shipped is the localhost proxy and normalizer — the layer we needed before an agent could spend less on repeated context. The harness is next season, not this page.",
+    q: "Will this help if my agent rewrites the system prompt every turn?",
+    a: "Only up to a point. usecoded can preserve stable structure, but it cannot manufacture a cache hit from context that never repeats. If your harness churns the prefix every turn, that harness still needs fixing.",
   },
 ];
 

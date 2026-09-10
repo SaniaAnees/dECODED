@@ -1,254 +1,196 @@
-import type { ReactNode } from "react";
-import { CONTACT_EMAIL, PRIVACY_URL, SITE_NAME } from "@/lib/site";
+import Link from "next/link";
+import { LegalDoc, LegalSection } from "@/components/landing/LegalDoc";
+import {
+  CONTACT_EMAIL,
+  PAYMENT_PROVIDER,
+  PLAN_PAID,
+  PRIVACY_URL,
+  SITE_NAME,
+} from "@/lib/site";
 
-const sections: { id: string; title: string; body: ReactNode }[] = [
-  {
-    id: "who",
-    title: "Who this is",
-    body: (
-      <>
-        <p>
-          This policy covers the site at wrayle.com (shown as {SITE_NAME}),
-          plus auth.wrayle.com and proxy.wrayle.com. The Google sign-in app is
-          named dECODED. Both are operated by Sania Anees.
-        </p>
-        <p>
-          The product that exists today is a localhost proxy and a waitlist.
-          This page describes only what we actually collect — not a future
-          agent.
-        </p>
-      </>
-    ),
-  },
-  {
-    id: "waitlist",
-    title: "Waitlist email",
-    body: (
-      <>
-        <p>
-          If you leave an email on the homepage, we store that address and the
-          time you joined. That is the whole record. We do not send a
-          confirmation yet, and we do not sync the list to a marketing tool.
-        </p>
-        <p>
-          We will write when there is something true to send — the cache
-          layer, or the harness, when it exists. We do not sell the list.
-        </p>
-      </>
-    ),
-  },
-  {
-    id: "signin",
-    title: "Google and GitHub sign-in",
-    body: (
-      <>
-        <p>
-          If you continue with Google, we receive your name, email address, and
-          profile photo. Those are the only scopes we ask for:{" "}
-          <span className="font-mono text-[14px] text-moon/90">openid</span>,{" "}
-          <span className="font-mono text-[14px] text-moon/90">email</span>, and{" "}
-          <span className="font-mono text-[14px] text-moon/90">profile</span>.
-          We do not read Gmail, Drive, Calendar, or any other Google product.
-        </p>
-        <p>
-          If you continue with GitHub, we receive the same kind of public
-          profile information (name, email, photo).
-        </p>
-        <p>
-          We keep a session cookie so you stay signed in — about 30 days if
-          you keep using the site. Sign-out ends it. We store the account so
-          you can come back without creating a password here.
-        </p>
-        <p>
-          Apple and Microsoft buttons are on the sign-in page but are not
-          connected yet. We do not collect anything from those providers until
-          they are.
-        </p>
-      </>
-    ),
-  },
-  {
-    id: "limited-use",
-    title: "How we use Google account data",
-    body: (
-      <>
-        <p>
-          We use Google name, email, and photo only to sign you in, show your
-          account, and keep you signed in. We do not sell this data. We do not
-          use it for advertising, credit decisions, or any purpose other than
-          authentication.
-        </p>
-        <p>
-          We do not share Google user data except with the hosting and
-          database providers that run this site, who process it for us. That
-          is the Limited Use standard Google requires for this kind of
-          sign-in.
-        </p>
-      </>
-    ),
-  },
-  {
-    id: "keys",
-    title: "Keys stay on your machine",
-    body: (
-      <>
-        <p>
-          The dECODED proxy listens on your computer (
-          <span className="font-mono text-[14px] text-moon/90">
-            127.0.0.1:8080
-          </span>
-          ). Your provider API keys never leave the laptop. Prompts and
-          completions are not stored on our servers. There is no hosted hop.
-        </p>
-        <p>
-          Traffic goes from your agent to localhost, then to the lab you
-          already pay. We do not see that traffic. We do not take payment
-          information — there is no checkout on this site.
-        </p>
-      </>
-    ),
-  },
-  {
-    id: "cookies",
-    title: "Cookies and analytics",
-    body: (
-      <>
-        <p>
-          Sign-in sets cookies for the session, CSRF protection, and
-          short-lived OAuth state. Those cookies are what keep you logged in
-          across wrayle.com and auth.wrayle.com.
-        </p>
-        <p>
-          The site also loads Google Analytics so we can tell whether pages
-          are used. We do not run other marketing pixels, and we do not use
-          Analytics to advertise to you.
-        </p>
-      </>
-    ),
-  },
-  {
-    id: "processors",
-    title: "Who else sees it",
-    body: (
-      <>
-        <p>
-          The site is hosted on Vercel. Waitlist emails and sign-in accounts
-          are stored in a hosted PostgreSQL database (currently Supabase).
-          Google sees OAuth and Analytics traffic. GitHub sees OAuth traffic
-          if you choose that button.
-        </p>
-        <p>
-          They process data to run the site. They are not a buyer of the
-          list.
-        </p>
-      </>
-    ),
-  },
-  {
-    id: "retention",
-    title: "How long we keep it",
-    body: (
-      <p>
-        Waitlist emails stay until you ask us to remove them. Account records
-        stay until you ask us to delete them. Sessions expire on their own;
-        signing out ends the current one.
-      </p>
-    ),
-  },
-  {
-    id: "choices",
-    title: "Your choices",
-    body: (
-      <>
-        <p>
-          Email{" "}
-          <a
-            href={`mailto:${CONTACT_EMAIL}`}
-            className="text-gilt underline-offset-4 transition-colors hover:text-moon hover:underline"
-          >
-            {CONTACT_EMAIL}
-          </a>{" "}
-          to see, correct, or delete your waitlist row or sign-in account.
-          Say which address to remove. We will do it.
-        </p>
-        <p>
-          You can sign out from the header. You can also revoke access in
-          your Google Account under Third-party access.
-        </p>
-      </>
-    ),
-  },
-  {
-    id: "children",
-    title: "Children",
-    body: (
-      <p>This site is not directed at children under 13.</p>
-    ),
-  },
-  {
-    id: "changes",
-    title: "Changes",
-    body: (
-      <p>
-        If this policy changes, we will update this page and the date at the
-        top. The current version lives at{" "}
-        <a
-          href={PRIVACY_URL}
-          className="text-gilt underline-offset-4 transition-colors hover:text-moon hover:underline"
-        >
-          {PRIVACY_URL}
-        </a>
-        .
-      </p>
-    ),
-  },
-];
-
+/**
+ * Structure follows Cursor / Cognition / Replit privacy pages.
+ * Age floor follows GitHub, JetBrains, Replit, Copilot (13+), not Cursor’s 18+.
+ * Content is limited to what usecoded actually processes today.
+ */
 export function PrivacyArticle() {
   return (
-    <article className="mx-auto max-w-2xl px-6 py-16 md:px-8 md:py-24">
-      <p className="font-mono text-[11px] tracking-[0.28em] text-gilt">
-        POLICY
-      </p>
-      <h1 className="mt-5 font-serif text-4xl font-medium leading-tight text-moon md:text-5xl">
-        Privacy
-      </h1>
-      <p className="mt-6 font-serif text-lg leading-relaxed text-mist">
-        Waitlist email, Google sign-in, and the keys that stay on your
-        machine. Nothing here is a claim about a product we have not shipped.
-      </p>
-      <p className="mt-4 font-mono text-[11px] tracking-[0.12em] text-dusk">
-        Last updated 7 September 2026
-      </p>
-
-      <div className="mt-14 divide-y divide-line border-y border-line">
-        {sections.map((section) => (
-          <section key={section.id} id={section.id} className="scroll-mt-24 py-10">
-            <h2 className="font-serif text-xl italic text-moon md:text-2xl">
-              {section.title}
-            </h2>
-            <div className="mt-4 space-y-4 font-serif text-[17px] leading-relaxed text-mist">
-              {section.body}
-            </div>
-          </section>
-        ))}
-      </div>
-
-      <section id="contact" className="scroll-mt-24 pt-12">
-        <p className="font-mono text-[11px] tracking-[0.28em] text-gilt">
-          CONTACT
+    <LegalDoc
+      eyebrow="PRIVACY"
+      title="Privacy policy"
+      lead={`What ${SITE_NAME} collects, how we use it, and who we share it with. Operated by Sania Anees.`}
+      updated="10 September 2026"
+    >
+      <LegalSection id="scope" title="1. Scope">
+        <p>
+          This Privacy Policy explains how we collect, use, disclose, and
+          retain personal data when you use wrayle.com, related auth hosts,
+          accounts, the waitlist, Paid checkout, and the {SITE_NAME} CLI
+          license (together, the “Service”). It works with our{" "}
+          <Link href="/terms">Terms of service</Link>.
         </p>
-        <p className="mt-4 font-serif text-[17px] leading-relaxed text-mist">
-          Sania Anees
-          <br />
-          <a
-            href={`mailto:${CONTACT_EMAIL}`}
-            className="text-gilt underline-offset-4 transition-colors hover:text-moon hover:underline"
-          >
-            {CONTACT_EMAIL}
-          </a>
+      </LegalSection>
+
+      <LegalSection id="collect" title="2. What we collect">
+        <p>
+          <strong>Account and contact.</strong> If you sign in with Google or
+          GitHub: name, email, and profile photo those providers send us. If
+          you join the waitlist: email and join time. If you write us: the
+          address and message contents (support, feedback, refunds).
         </p>
-      </section>
-    </article>
+        <p>
+          <strong>Payment.</strong> {PLAN_PAID.name} ({PLAN_PAID.priceLabel}/month)
+          is
+          charged by {PAYMENT_PROVIDER}. They collect card or UPI details on
+          their pages. We receive status, amount, currency, and payment /
+          subscription ids so we can unlock the CLI seat and handle refunds.
+          We do not store full card numbers.
+        </p>
+        <p>
+          <strong>Automatic / technical.</strong> Session cookies, CSRF and
+          OAuth state, IP address, and basic browser / device data in server
+          logs. If Google Analytics is enabled on the site, we receive
+          aggregated page-use data from it.
+        </p>
+        <p>
+          <strong>What we do not collect via the website.</strong> Your source
+          code, prompts, and repo files are not uploaded to us to run the
+          Paid CLI. That product runs on your machine.
+        </p>
+      </LegalSection>
+
+      <LegalSection id="use" title="3. How we use it">
+        <p>We use personal data to:</p>
+        <ul className="list-disc space-y-2 pl-5">
+          <li>provide and maintain the Service (site, accounts, waitlist)</li>
+          <li>authenticate you and keep sessions working</li>
+          <li>bill, renew, and refund Paid subscriptions through {PAYMENT_PROVIDER}</li>
+          <li>send Service messages you asked for (including waitlist updates)</li>
+          <li>debug, prevent fraud and abuse, and secure the Service</li>
+          <li>understand site usage (including Analytics, when enabled)</li>
+          <li>comply with law, tax, and accounting rules</li>
+        </ul>
+        <p>
+          We do not sell personal data. We do not use it for cross-context
+          behavioral advertising. Google account data is used only to sign
+          you in and show your account — not for ads or credit decisions
+          (Google Limited Use).
+        </p>
+      </LegalSection>
+
+      <LegalSection id="share" title="4. How we share it">
+        <p>
+          <strong>Service providers.</strong> Vercel (hosting), Supabase /
+          PostgreSQL (database), {PAYMENT_PROVIDER} (payments), Google and
+          GitHub (sign-in), Google Analytics when loaded. They process data
+          for us to run the Service — they are not buyers of your data.
+        </p>
+        <p>
+          <strong>Legal and safety.</strong> We may disclose data when
+          required by law or legal process, or to prevent fraud, abuse, or
+          harm.
+        </p>
+        <p>
+          <strong>Business transfers.</strong> If the project is sold, merged,
+          or restructured, personal data may move with it under this policy
+          (or a successor notice).
+        </p>
+      </LegalSection>
+
+      <LegalSection id="oauth" title="5. Google and GitHub sign-in">
+        <p>
+          Google scopes:{" "}
+          <span className="font-mono text-[13px] text-moon/90">openid</span>,{" "}
+          <span className="font-mono text-[13px] text-moon/90">email</span>,{" "}
+          <span className="font-mono text-[13px] text-moon/90">profile</span>.
+          We do not access Gmail, Drive, or Calendar. GitHub provides the same
+          kind of public profile fields.
+        </p>
+        <p>
+          We keep a session cookie (about 30 days with ongoing use). Sign-out
+          ends it. You can revoke Google access under Third-party access in
+          your Google Account. Apple and Microsoft buttons are not connected
+          until credentials are set; we collect nothing from them until then.
+        </p>
+      </LegalSection>
+
+      <LegalSection id="cli" title="6. CLI">
+        <p>
+          Paid is a license for the closed-source {SITE_NAME} CLI you run
+          locally. This policy covers account and billing data for that seat.
+          Files that never leave your computer are outside what we collect
+          through the Service described here.
+        </p>
+      </LegalSection>
+
+      <LegalSection id="retention" title="7. Retention">
+        <p>
+          We keep personal data only as long as needed to run the Service and
+          meet legal duties. Waitlist and account records stay until you ask
+          us to delete them, or we close the account under the Terms. Payment
+          records needed for tax, dispute, or accounting stay as long as law
+          requires. Sessions expire; signing out ends the current one.
+        </p>
+      </LegalSection>
+
+      <LegalSection id="security" title="8. Security">
+        <p>
+          We use commercially reasonable technical and organizational measures
+          (HTTPS, database access controls, OAuth via Google / GitHub,
+          payments via {PAYMENT_PROVIDER}). No method of transmission or
+          storage is fully secure. Avoid sending secrets in waitlist fields or
+          email that you cannot rotate.
+        </p>
+      </LegalSection>
+
+      <LegalSection id="transfers" title="9. Where data is processed">
+        <p>
+          Our hosting and database providers may store and process data in
+          regions outside your country (including the United States). By using
+          the Service you understand that transfer. We still apply the
+          protections in this policy.
+        </p>
+      </LegalSection>
+
+      <LegalSection id="rights" title="10. Your rights">
+        <p>
+          Depending on where you live, you may have rights to access, correct,
+          delete, or receive a copy of personal data we hold, and to object to
+          or restrict certain processing. Email{" "}
+          <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> to make a
+          request. Say which email the record is under. We may verify identity
+          before acting. We will not discriminate against you for exercising
+          rights the law gives you.
+        </p>
+        <p>
+          Paid refunds follow the{" "}
+          <Link href="/refund">Refund &amp; cancellation policy</Link>.
+        </p>
+      </LegalSection>
+
+      <LegalSection id="children" title="11. Children">
+        <p>
+          The Service is not directed at children under 13. You must be at
+          least 13 to use it. If your country sets a higher digital age of
+          consent, you must meet that age too.
+        </p>
+        <p>
+          If you are under 18 (or under the age of majority where you live),
+          a parent or guardian must agree to the Terms before you buy Paid. If
+          we learn we have data from someone under 13, we will delete it.
+          Write <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> if
+          you believe that happened.
+        </p>
+      </LegalSection>
+
+      <LegalSection id="changes" title="12. Changes">
+        <p>
+          We may update this policy. We will change the date at the top. Live
+          version: <a href={PRIVACY_URL}>{PRIVACY_URL}</a>. Continued use after
+          an update means you accept the revised policy, except where law
+          requires a different notice.
+        </p>
+      </LegalSection>
+    </LegalDoc>
   );
 }

@@ -6,17 +6,17 @@ export function Waitlist() {
       <hr className="rule" />
       <div className="py-24 md:py-32">
         <p className="font-mono text-[11px] tracking-[0.28em] text-gilt">
-          THE LIST
+          UPDATES
         </p>
         <h2 className="mt-5 max-w-xl font-serif text-4xl font-medium leading-tight text-moon md:text-5xl">
-          Leave an email if the problem is yours too.
+          Updates and early features.
         </h2>
         <p className="mt-6 max-w-lg font-serif text-lg leading-relaxed text-mist">
-          No quiz. No sales call. We will write when there is something true
-          to send — the cache layer, or the harness, when it exists.
+          Install is the main path. Leave an email only if you want occasional
+          notes when there is something real to ship or test.
         </p>
         <div className="mt-10">
-          <BetaForm />
+          <BetaForm submitLabel="Get updates" success={"You're on the updates list."} />
         </div>
       </div>
     </section>

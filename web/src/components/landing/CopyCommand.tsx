@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import { SETUP_CMD } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
@@ -8,10 +8,12 @@ export function CopyCommand({
   text,
   label = "Copy",
   className,
+  style,
 }: {
   text?: string;
   label?: string;
   className?: string;
+  style?: CSSProperties;
 }) {
   const [copied, setCopied] = useState(false);
 
@@ -26,7 +28,12 @@ export function CopyCommand({
   };
 
   return (
-    <button type="button" onClick={handleCopy} className={cn("transition-colors", className)}>
+    <button
+      type="button"
+      onClick={handleCopy}
+      className={cn("transition-colors", className)}
+      style={style}
+    >
       {copied ? "Copied" : label}
     </button>
   );

@@ -57,6 +57,36 @@ try {
     process.exit(1);
   }
 
+  const feedbackSqlPath = join(__dir, "..", "drizzle", "0002_feedback.sql");
+  try {
+    const feedbackSql = readFileSync(feedbackSqlPath, "utf8");
+    console.log("Running feedback schema (0002_feedback.sql)...");
+    await sql.unsafe(feedbackSql);
+  } catch (fbErr) {
+    console.warn("Feedback table skipped:", fbErr.message);
+  }
+
+  const billingSqlPath = join(__dir, "..", "drizzle", "0003_billing.sql");
+  try {
+    const billingSql = readFileSync(billingSqlPath, "utf8");
+    console.log("Running billing schema (0003_billing.sql)...");
+    await sql.unsafe(billingSql);
+  } catch (billErr) {
+    console.warn("Billing tables skipped:", billErr.message);
+  }
+
+  const after = await sql`
+    SELECT tablename FROM pg_tables
+    WHERE schemaname = 'public'
+    ORDER BY tablename
+  `;
+  const afterNames = after.map((r) => r.tablename);
+  for (const t of ["subscription", "payment_event"]) {
+    if (!afterNames.includes(t)) {
+      console.warn(`Expected billing table missing: ${t}`);
+    }
+  }
+
   console.log("\n✓ Database ready for NextAuth (official / production path).");
   console.log("  Set AUTH_USE_DATABASE=true in .env.local, then: npm run verify:auth\n");
 } catch (e) {
