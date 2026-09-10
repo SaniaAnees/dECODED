@@ -7,19 +7,40 @@ import { SignInCard } from "@/components/auth/SignInCard";
 import { SignInErrorBanner } from "@/components/auth/SignInErrorBanner";
 import { SkyPageShell } from "@/components/landing/SkyPageShell";
 import { getAuthOptions } from "@/lib/auth";
+import {
+  absoluteReturnUrl,
+  oauthCallbackWithReturn,
+  safeReturnPath,
+} from "@/lib/auth-return";
 import { getConfiguredProviders } from "@/lib/auth-status";
-import { MAIN_SITE_URL, WELCOME_URL, SITE_NAME } from "@/lib/site";
+import { MAIN_SITE_URL, SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: `Sign in — ${SITE_NAME}`,
 };
 
-export default async function SignInPage() {
+type SignInPageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
+function firstParam(
+  value: string | string[] | undefined,
+): string | undefined {
+  if (Array.isArray(value)) return value[0];
+  return value;
+}
+
+export default async function SignInPage({ searchParams }: SignInPageProps) {
+  const params = (await searchParams) ?? {};
+  const returnPath = safeReturnPath(firstParam(params.callbackUrl));
+
   const session = await getServerSession(getAuthOptions());
-  if (session) redirect(MAIN_SITE_URL);
+  if (session) {
+    redirect(returnPath ? absoluteReturnUrl(returnPath) : MAIN_SITE_URL);
+  }
 
   const configured = getConfiguredProviders();
-  const callbackUrl = WELCOME_URL;
+  const callbackUrl = oauthCallbackWithReturn(returnPath);
 
   return (
     <SkyPageShell>

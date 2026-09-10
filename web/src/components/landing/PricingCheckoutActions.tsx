@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { CONTACT_EMAIL, PLAN_PAID, SIGN_IN_URL } from "@/lib/site";
+import { CONTACT_EMAIL, MAIN_SITE_URL, PRICING_URL, SIGN_IN_URL } from "@/lib/site";
 
 type BillingStatus = {
   plan: string;
@@ -71,14 +71,10 @@ async function fetchBillingStatus(): Promise<BillingStatus | null> {
   return (await res.json()) as BillingStatus;
 }
 
-function signInHref(): string {
+function signInHref(returnTo: string = PRICING_URL): string {
   const base = SIGN_IN_URL.replace(/\/$/, "");
-  const callback =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/pricing`
-      : "/pricing";
   const sep = base.includes("?") ? "&" : "?";
-  return `${base}${sep}callbackUrl=${encodeURIComponent(callback)}`;
+  return `${base}${sep}callbackUrl=${encodeURIComponent(returnTo)}`;
 }
 
 const btnBase =
@@ -337,7 +333,7 @@ export function StartFreeButton() {
     );
   }
   return (
-    <a href={signInHref()} className={btnFree}>
+    <a href={signInHref(MAIN_SITE_URL)} className={btnFree}>
       Start free
     </a>
   );

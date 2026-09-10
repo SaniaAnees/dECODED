@@ -15,11 +15,12 @@ const EXIT_MS = 900;
 
 type FlowPhase = "loading" | "enter" | "hold" | "exit";
 
-export function WelcomeScreen() {
+export function WelcomeScreen({ nextPath = "/" }: { nextPath?: string }) {
   const router = useRouter();
   const { data: session, status } = useSession();
   const [phase, setPhase] = useState<FlowPhase>("loading");
   const [progress, setProgress] = useState(0);
+  const dest = nextPath.startsWith("/") ? nextPath : "/";
 
   useEffect(() => {
     if (status !== "authenticated") return;
@@ -29,7 +30,7 @@ export function WelcomeScreen() {
 
     const holdTimer = window.setTimeout(() => setPhase("exit"), HOLD_MS);
     const exitTimer = window.setTimeout(
-      () => router.replace("/"),
+      () => router.replace(dest),
       HOLD_MS + EXIT_MS,
     );
 
@@ -49,7 +50,7 @@ export function WelcomeScreen() {
       clearTimeout(exitTimer);
       cancelAnimationFrame(frame);
     };
-  }, [status, router]);
+  }, [status, router, dest]);
 
   const shellClass = [
     "auth-welcome-shell relative z-10 flex min-h-screen flex-col items-center justify-center px-6 text-center",
@@ -110,7 +111,9 @@ export function WelcomeScreen() {
         <p className="auth-welcome-item auth-welcome-item--5 mt-8 font-serif text-[16px] leading-relaxed text-mist">
           {phase === "exit"
             ? "See you on the other side…"
-            : "Your account is ready. Gliding you home…"}
+            : dest === "/pricing"
+              ? "Your account is ready. Taking you to pricing…"
+              : "Your account is ready. Gliding you home…"}
         </p>
 
         <div className="auth-welcome-item auth-welcome-item--6 mt-10 h-[2px] w-full overflow-hidden rounded-full bg-white/25">
@@ -122,7 +125,7 @@ export function WelcomeScreen() {
 
         {phase !== "exit" ? (
           <Link
-            href="/"
+            href={dest}
             className="auth-welcome-item auth-welcome-item--7 mt-8 inline-block font-serif text-[15px] text-gilt transition-colors hover:text-moon"
           >
             Continue now →
