@@ -6,18 +6,18 @@ import dotenv from "dotenv";
 dotenv.config({ path: ".env.local" });
 
 const PROD = {
-  main: "https://wrayle.com",
-  auth: "https://auth.wrayle.com",
-  proxy: "https://proxy.wrayle.com",
-  signIn: "https://auth.wrayle.com",
-  googleCallback: "https://auth.wrayle.com/api/auth/callback/google",
-  githubCallback: "https://auth.wrayle.com/api/auth/callback/github",
-  cookieDomain: ".wrayle.com",
+  main: "https://usecoded.com",
+  auth: "https://auth.usecoded.com",
+  proxy: "https://proxy.usecoded.com",
+  signIn: "https://auth.usecoded.com",
+  googleCallback: "https://auth.usecoded.com/api/auth/callback/google",
+  githubCallback: "https://auth.usecoded.com/api/auth/callback/github",
+  cookieDomain: ".usecoded.com",
 };
 
 console.log(`
 ╔══════════════════════════════════════════════════════════════╗
-║  Wrayle — production checklist (you do these in dashboards)  ║
+║  usecoded — production checklist (you do these in dashboards)  ║
 ╚══════════════════════════════════════════════════════════════╝
 
 WEBSITE URLS (give publishers the main link):
@@ -40,10 +40,10 @@ VERCEL → Project → Settings → Environment Variables (Production):
   AUTH_GITHUB_SECRET=<your GitHub OAuth client secret>
 
 VERCEL → Settings → Domains (add all four):
-  wrayle.com
-  www.wrayle.com          (middleware redirects www → apex)
-  auth.wrayle.com
-  proxy.wrayle.com
+  usecoded.com
+  www.usecoded.com          (middleware redirects www → apex)
+  auth.usecoded.com
+  proxy.usecoded.com
 
 DOMAIN REGISTRAR → DNS (point to Vercel — use values Vercel shows):
   @     → Vercel apex
@@ -53,19 +53,23 @@ DOMAIN REGISTRAR → DNS (point to Vercel — use values Vercel shows):
 
 GOOGLE CLOUD CONSOLE → OAuth client → Authorized redirect URIs:
   http://localhost:3000/api/auth/callback/google
-  https://auth.wrayle.com/api/auth/callback/google
+  https://auth.usecoded.com/api/auth/callback/google
 
 GITHUB → Settings → Developer settings → OAuth Apps:
   http://localhost:3000/api/auth/callback/github
-  https://auth.wrayle.com/api/auth/callback/github
+  https://auth.usecoded.com/api/auth/callback/github
+
+RAZORPAY:
+  Website: ${PROD.main}
+  Webhook: ${PROD.main}/api/razorpay/webhook
 
 SUPABASE:
   Same project — use Transaction pooler URI on Vercel (port 6543)
 
 CODE (already done in repo):
-  ✓ Wrayle wordmark
+  ✓ usecoded wordmark
   ✓ Subdomain middleware (auth.* / proxy.*)
-  ✓ www.wrayle.com → wrayle.com redirect
+  ✓ www.usecoded.com → usecoded.com redirect
   ✓ PROD_URLS in src/lib/site.ts
 
 CANNOT be done from code (you must do in browser):
@@ -73,11 +77,12 @@ CANNOT be done from code (you must do in browser):
   • Vercel domain + env var setup
   • Google Console redirect URI click-save
   • Supabase dashboard (tables already created)
+  • Razorpay website + webhook URL
 
 SESSION (already configured in code):
   ✓ Database sessions — same browser stays signed in ~30 days
   ✓ Rolling refresh — active users extend session daily
-  ✓ Cookie domain .wrayle.com in prod (wrayle.com + auth + proxy)
+  ✓ Cookie domain .usecoded.com in prod (usecoded.com + auth + proxy)
   ✓ New user → welcome slide; returning user → straight to home
   ✓ Sign out clears session; new browser/device → Google once per session
 `);

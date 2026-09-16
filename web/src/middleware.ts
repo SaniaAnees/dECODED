@@ -15,10 +15,10 @@ export function middleware(request: NextRequest) {
   const hostname = host.split(":")[0];
   const pathname = request.nextUrl.pathname;
 
-  // Canonical production host: wrayle.com (apex), not www.
-  if (hostname === "www.wrayle.com") {
+  // Canonical production host: usecoded.com (apex), not www.
+  if (hostname === "www.usecoded.com") {
     const url = request.nextUrl.clone();
-    url.hostname = "wrayle.com";
+    url.hostname = "usecoded.com";
     url.protocol = "https:";
     url.port = "";
     return NextResponse.redirect(url, 308);

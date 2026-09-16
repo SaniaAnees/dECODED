@@ -2,7 +2,7 @@
 export const SITE_NAME = "usecoded";
 
 /** Plane-seal mark — favicon, header, GitHub OAuth, Open Graph. */
-export const BRAND_SEAL_SRC = "/brand/wrayle-seal-sm.png";
+export const BRAND_SEAL_SRC = "/brand/usecoded-seal-sm.png";
 
 /** Shared wordmark typography — serif + letter-spacing. */
 export const WORDMARK_CLASS = "font-serif tracking-[0.18em]";
@@ -11,18 +11,18 @@ export const WORDMARK_CLASS = "font-serif tracking-[0.18em]";
 export const SITE_NAME_CLASS = `${WORDMARK_CLASS} [font-variant-caps:all-small-caps]`;
 
 /**
- * Production URLs — canonical https://wrayle.com (set on Vercel via env vars).
+ * Production URLs — canonical https://usecoded.com (set on Vercel via env vars).
  * Local dev URLs belong in .env.local only (gitignored).
  */
 export const PROD_URLS = {
-  main: "https://wrayle.com",
-  auth: "https://auth.wrayle.com",
-  proxy: "https://proxy.wrayle.com",
-  signIn: "https://auth.wrayle.com",
-  welcome: "https://wrayle.com/welcome",
-  googleCallback: "https://auth.wrayle.com/api/auth/callback/google",
-  githubCallback: "https://auth.wrayle.com/api/auth/callback/github",
-  cookieDomain: ".wrayle.com",
+  main: "https://usecoded.com",
+  auth: "https://auth.usecoded.com",
+  proxy: "https://proxy.usecoded.com",
+  signIn: "https://auth.usecoded.com",
+  welcome: "https://usecoded.com/welcome",
+  googleCallback: "https://auth.usecoded.com/api/auth/callback/google",
+  githubCallback: "https://auth.usecoded.com/api/auth/callback/github",
+  cookieDomain: ".usecoded.com",
 } as const;
 
 const onVercel = Boolean(process.env.VERCEL);
@@ -37,7 +37,7 @@ function authOriginFromPublicUrl(): string | undefined {
   }
 }
 
-/** Main marketing site. Prod: https://wrayle.com */
+/** Main marketing site. Prod: https://usecoded.com */
 export const MAIN_SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ??
   (onVercel ? PROD_URLS.main : "http://localhost:3000");
@@ -53,7 +53,7 @@ export const PROXY_SITE_URL =
   process.env.NEXT_PUBLIC_PROXY_URL ??
   (onVercel ? PROD_URLS.proxy : "http://proxy.localhost:3000");
 
-/** Sign-in page. Prod: https://auth.wrayle.com */
+/** Sign-in page. Prod: https://auth.usecoded.com */
 export const SIGN_IN_URL =
   process.env.NEXT_PUBLIC_AUTH_URL ??
   (onVercel ? PROD_URLS.signIn : "http://localhost:3000/sign-in");
@@ -64,22 +64,22 @@ export const OAUTH_ORIGIN =
   process.env.NEXTAUTH_URL?.replace(/\/$/, "") ??
   (onVercel ? PROD_URLS.auth : "http://localhost:3000");
 
-/** Post-OAuth welcome (new users). Prod: https://wrayle.com/welcome */
+/** Post-OAuth welcome (new users). Prod: https://usecoded.com/welcome */
 export const WELCOME_URL = `${MAIN_SITE_URL.replace(/\/$/, "")}/welcome`;
 
-/** Public privacy policy. Prod: https://wrayle.com/privacy */
+/** Public privacy policy. Prod: https://usecoded.com/privacy */
 export const PRIVACY_URL = `${MAIN_SITE_URL.replace(/\/$/, "")}/privacy`;
 
-/** Public terms of service. Prod: https://wrayle.com/terms */
+/** Public terms of service. Prod: https://usecoded.com/terms */
 export const TERMS_URL = `${MAIN_SITE_URL.replace(/\/$/, "")}/terms`;
 
-/** Public refund / cancellation policy. Prod: https://wrayle.com/refund */
+/** Public refund / cancellation policy. Prod: https://usecoded.com/refund */
 export const REFUND_URL = `${MAIN_SITE_URL.replace(/\/$/, "")}/refund`;
 
-/** Public pricing. Prod: https://wrayle.com/pricing */
+/** Public pricing. Prod: https://usecoded.com/pricing */
 export const PRICING_URL = `${MAIN_SITE_URL.replace(/\/$/, "")}/pricing`;
 
-/** Public feedback form. Prod: https://wrayle.com/feedback */
+/** Public feedback form. Prod: https://usecoded.com/feedback */
 export const FEEDBACK_URL = `${MAIN_SITE_URL.replace(/\/$/, "")}/feedback`;
 
 /** Plans shown on site + required for Razorpay website review. */
@@ -110,7 +110,7 @@ export const ISSUES_URL = `${GITHUB_URL}/issues/new/choose`;
 export const CONTACT_EMAIL = "saniaanees91@gmail.com";
 
 /** Primary landing CTA: install, then run the harness. */
-export const INSTALL_MAC_LINUX = `curl -fsSL https://wrayle.com/install | bash`;
+export const INSTALL_MAC_LINUX = `curl -fsSL https://usecoded.com/install | bash`;
 export const INSTALL_NPM = `npm i -g usecoded@latest`;
 export const RUN_COMMAND = `usecoded`;
 

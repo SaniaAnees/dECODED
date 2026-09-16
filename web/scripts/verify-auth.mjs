@@ -69,8 +69,8 @@ console.log(`  · Cookie domain: ${process.env.AUTH_COOKIE_DOMAIN ?? "(auto)"}`)
 section("Google Cloud Console — register these EXACTLY");
 console.log("  Local redirect URI (required — Google rejects auth.localhost):");
 console.log(`    http://localhost:3000/api/auth/callback/google`);
-console.log("  Production redirect URI (wrayle.com):");
-console.log(`    https://auth.wrayle.com/api/auth/callback/google`);
+console.log("  Production redirect URI (usecoded.com):");
+console.log(`    https://auth.usecoded.com/api/auth/callback/google`);
 console.log("  (Add BOTH if you test locally and ship to prod.)");
 
 section("GitHub OAuth App — register these EXACTLY");
@@ -78,7 +78,7 @@ console.log("  Create at https://github.com/settings/developers → OAuth Apps")
 console.log("  Local callback:");
 console.log(`    http://localhost:3000/api/auth/callback/github`);
 console.log("  Production callback:");
-console.log(`    https://auth.wrayle.com/api/auth/callback/github`);
+console.log(`    https://auth.usecoded.com/api/auth/callback/github`);
 console.log("  Then set AUTH_GITHUB_ID + AUTH_GITHUB_SECRET in .env.local and restart next.");
 
 section("URL alignment");

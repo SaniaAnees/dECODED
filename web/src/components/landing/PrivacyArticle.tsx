@@ -24,7 +24,7 @@ export function PrivacyArticle() {
       <LegalSection id="scope" title="1. Scope">
         <p>
           This Privacy Policy explains how we collect, use, disclose, and
-          retain personal data when you use wrayle.com, related auth hosts,
+          retain personal data when you use usecoded.com, related auth hosts,
           accounts, the waitlist, Paid checkout, and the {SITE_NAME} CLI
           license (together, the “Service”). It works with our{" "}
           <Link href="/terms">Terms of service</Link>.

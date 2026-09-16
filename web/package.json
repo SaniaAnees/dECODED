@@ -10,7 +10,10 @@
     "db:push": "drizzle-kit push",
     "db:setup": "node scripts/setup-db.mjs",
     "verify:auth": "node scripts/verify-auth.mjs",
-    "verify:prod": "node scripts/verify-prod.mjs"
+    "verify:prod": "node scripts/verify-prod.mjs",
+    "cutover:oauth": "node scripts/cutover-oauth-checklist.mjs",
+    "cutover:sync": "node scripts/sync-usecoded-domain.mjs",
+    "cutover:wrayle-redirect": "node scripts/set-wrayle-redirect.mjs"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.3",

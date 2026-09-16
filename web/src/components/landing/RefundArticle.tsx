@@ -24,7 +24,7 @@ export function RefundArticle() {
     >
       <LegalSection id="scope" title="1. Scope">
         <p>
-          This policy covers {SITE_NAME} (wrayle.com), operated by Sania
+          This policy covers {SITE_NAME} (usecoded.com), operated by Sania
           Anees. Plans are on <Link href="/pricing">Pricing</Link>; the
           contract is the <Link href="/terms">Terms of service</Link>.
         </p>

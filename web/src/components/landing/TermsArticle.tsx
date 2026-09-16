@@ -29,7 +29,7 @@ export function TermsArticle() {
       <LegalSection id="service" title="1. The Service">
         <p>
           {SITE_NAME} is operated by Sania Anees. The Service includes
-          wrayle.com and related auth hosts, waitlist and sign-in, and — for
+          usecoded.com and related auth hosts, waitlist and sign-in, and — for
           Paid subscribers — a limited license to install and run our
           closed-source CLI / coding harness built for token optimization.
         </p>

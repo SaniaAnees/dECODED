@@ -73,6 +73,16 @@ Tagged GitHub Releases (`v0.1.0`, …) attach macOS/Linux/Windows binaries via G
 
 ## Feedback
 
-Waste, great, or a change — open an issue (no API keys):
+Site form: [/feedback](https://usecoded.com/feedback) (also linked in the footer).
 
-https://github.com/SaniaAnees/dECODED/issues/new/choose
+**Local / Vercel env** (see `web/.env.example`):
+
+- `RESEND_API_KEY` — Resend API key
+- `FEEDBACK_TO_EMAIL` — your inbox
+- `FEEDBACK_FROM_EMAIL` — verified Resend from-address
+
+Apply the table once: run `web/drizzle/0002_feedback.sql` in Supabase SQL Editor (or `npm run db:push` from `web/` if `DATABASE_URL` connects).
+
+Smoke test: open `/feedback`, send a message → row in `feedback`, email at `FEEDBACK_TO_EMAIL`.
+
+CLI / proxy issues (no API keys): https://github.com/SaniaAnees/dECODED/issues/new/choose

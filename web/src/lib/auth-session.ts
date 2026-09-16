@@ -8,6 +8,6 @@ export const SESSION_MAX_AGE_SEC =
 export const SESSION_UPDATE_AGE_SEC = 24 * 60 * 60;
 
 /** Short-lived cookie set after OAuth to route new vs returning users. */
-export const AUTH_KIND_COOKIE = "wrayle_auth_kind";
+export const AUTH_KIND_COOKIE = "usecoded_auth_kind";
 
 export type AuthKind = "new" | "returning";

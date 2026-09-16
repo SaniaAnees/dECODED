@@ -3,7 +3,7 @@ import { PROD_URLS } from "@/lib/site";
 /**
  * Canonical auth URLs — must match Google Console redirect URIs exactly.
  * Local URLs: .env.local only (gitignored).
- * Prod: https://auth.wrayle.com
+ * Prod: https://auth.usecoded.com
  */
 
 function trimSlash(url: string): string {
@@ -32,7 +32,7 @@ export function getGitHubCallbackUrl(): string {
 /**
  * Shared cookie domain so session works on auth.* and main site.
  * Local localhost: host-only cookies (Domain=.localhost breaks Chrome).
- * Prod: .wrayle.com (or set AUTH_COOKIE_DOMAIN in env).
+ * Prod: .usecoded.com (or set AUTH_COOKIE_DOMAIN in env).
  */
 export function getAuthCookieDomain(): string | undefined {
   const explicit = process.env.AUTH_COOKIE_DOMAIN?.trim();
