@@ -79,6 +79,9 @@ export const REFUND_URL = `${MAIN_SITE_URL.replace(/\/$/, "")}/refund`;
 /** Public pricing. Prod: https://usecoded.com/pricing */
 export const PRICING_URL = `${MAIN_SITE_URL.replace(/\/$/, "")}/pricing`;
 
+/** Public about page. Prod: https://usecoded.com/about */
+export const ABOUT_URL = `${MAIN_SITE_URL.replace(/\/$/, "")}/about`;
+
 /** Public feedback form. Prod: https://usecoded.com/feedback */
 export const FEEDBACK_URL = `${MAIN_SITE_URL.replace(/\/$/, "")}/feedback`;
 
@@ -107,7 +110,55 @@ export const GITHUB_URL = "https://github.com/SaniaAnees/dECODED";
 export const ISSUES_URL = `${GITHUB_URL}/issues/new/choose`;
 
 /** Operator contact — also the Google OAuth user-support address. */
-export const CONTACT_EMAIL = "saniaanees91@gmail.com";
+export const CONTACT_EMAIL = "sania@usecoded.com";
+
+/** Inline icon keys for the about-page social lists. */
+export type SocialIconName = "linkedin" | "x" | "github" | "instagram";
+
+export type SocialAccount = {
+  icon: SocialIconName;
+  label: string;
+  /** Placeholder strings start with "[" and render as non-links, never dead links. */
+  href: string;
+};
+
+/** Founder's personal profiles. Shown on the about page only, never as company accounts. */
+export const FOUNDER = {
+  name: "Sania Anees",
+  title: "Founder",
+  socials: [
+    {
+      icon: "linkedin",
+      label: "LinkedIn",
+      href: "https://www.linkedin.com/in/sania-anees-0b49b53a6",
+    },
+    { icon: "x", label: "X", href: "https://x.com/SaniaAnees2816" },
+    { icon: "github", label: "GitHub", href: "https://github.com/SaniaAnees" },
+  ] as SocialAccount[],
+} as const;
+
+/**
+ * Company accounts. X and Instagram are placeholders until the handles exist,
+ * so they render as non-interactive "soon" labels rather than dead links.
+ */
+export const COMPANY_SOCIALS: SocialAccount[] = [
+  {
+    icon: "linkedin",
+    label: "LinkedIn",
+    href: "https://www.linkedin.com/company/usecoded/home/",
+  },
+  { icon: "x", label: "X", href: "[PLACEHOLDER_USECODED_X_URL]" },
+  { icon: "instagram", label: "Instagram", href: "[PLACEHOLDER_USECODED_INSTAGRAM_URL]" },
+];
+
+/**
+ * About page demo capture. Set `src` (and optionally `poster`) when the
+ * walkthrough is recorded; until then the section renders a labelled placeholder.
+ */
+export const ABOUT_DEMO_VIDEO: { src: string | null; poster: string | null } = {
+  src: null,
+  poster: null,
+};
 
 /** Primary landing CTA: install, then run the harness. */
 export const INSTALL_MAC_LINUX = `curl -fsSL https://usecoded.com/install | bash`;

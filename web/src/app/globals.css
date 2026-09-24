@@ -572,3 +572,346 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ==========================================================================
+   About page — scroll reveals, system diagrams, brand assembly, tickers.
+   Every animation here is decorative: with motion reduced, the information
+   and the hierarchy stay exactly the same.
+   ========================================================================== */
+
+/* Section entrance. Scroll-linked in CSS only, so the resting state is fully
+   visible and nothing depends on JavaScript or on a scroll timeline existing. */
+@supports (animation-timeline: view()) {
+  .about-reveal {
+    animation: about-reveal-in linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 55%;
+  }
+}
+
+@keyframes about-reveal-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Request signal travelling down a 2.5rem connector. */
+.about-signal {
+  animation: about-signal-travel 2.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.about-signal-up {
+  animation: about-signal-travel-up 2.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes about-signal-travel {
+  0% {
+    transform: translateY(-0.35rem);
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+  }
+  78% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(2.5rem);
+    opacity: 0;
+  }
+}
+
+@keyframes about-signal-travel-up {
+  0% {
+    transform: translateY(2.5rem);
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+  }
+  78% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-0.35rem);
+    opacity: 0;
+  }
+}
+
+.about-node-pulse {
+  animation: about-node-pulse 3.6s ease-in-out infinite;
+}
+
+@keyframes about-node-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Brand interlude — traces draw in, nodes pop, then the wordmark lands. */
+.about-trace {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: about-draw 1.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes about-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.about-node-pop {
+  opacity: 0;
+  animation: about-pop 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes about-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.72);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Horizontal bars that breathe, used by the context + trust diagrams. */
+.about-bar {
+  transform-origin: left;
+  animation: about-bar-grow 3.4s ease-in-out infinite;
+}
+
+@keyframes about-bar-grow {
+  0%,
+  100% {
+    transform: scaleX(0.4);
+    opacity: 0.55;
+  }
+  50% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+/* Full-bleed bands, so consecutive sections are not all the same sky. */
+.about-band-deep {
+  background: rgba(8, 14, 32, 0.55);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.about-band-solid {
+  background: #0a1228;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+/* Sequential activation while scrolling. Base state stays fully readable. */
+@supports (animation-timeline: view()) {
+  .about-activate {
+    animation: about-activate-in linear both;
+    animation-timeline: view();
+    animation-range: entry 10% entry 80%;
+  }
+}
+
+@keyframes about-activate-in {
+  from {
+    opacity: 0.32;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Audience strip. Pauses on hover and on keyboard focus. */
+.about-marquee-wrap {
+  mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    #000 7%,
+    #000 93%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    #000 7%,
+    #000 93%,
+    transparent 100%
+  );
+}
+
+.about-marquee {
+  animation: about-marquee 38s linear infinite;
+}
+
+.about-marquee-wrap:hover .about-marquee,
+.about-marquee-wrap:focus-within .about-marquee {
+  animation-play-state: paused;
+}
+
+@keyframes about-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* Interest ticker — sequential emphasis, never hides a label. */
+.about-tick {
+  animation: about-tick 12s ease-in-out infinite;
+}
+
+@keyframes about-tick {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  6%,
+  16% {
+    opacity: 1;
+  }
+}
+
+/* Demo placeholder — paint-only scan, no layout work. */
+.about-scan {
+  background-image: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(228, 180, 92, 0.05) 42%,
+    rgba(228, 180, 92, 0.2) 50%,
+    rgba(228, 180, 92, 0.05) 58%,
+    transparent 100%
+  );
+  background-size: 100% 22%;
+  background-repeat: no-repeat;
+  animation: about-scan-move 5.5s ease-in-out infinite;
+}
+
+@keyframes about-scan-move {
+  0% {
+    background-position: 0 -25%;
+  }
+  100% {
+    background-position: 0 125%;
+  }
+}
+
+.about-frame-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: about-draw 2.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.about-play-ring {
+  animation: about-play-pulse 2.6s ease-in-out infinite;
+}
+
+@keyframes about-play-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.75;
+  }
+  50% {
+    transform: scale(1.07);
+    opacity: 1;
+  }
+}
+
+/* Typographic hover underline for the composition / principle rows. */
+.about-underline {
+  position: relative;
+}
+
+.about-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -0.4rem;
+  height: 1px;
+  width: 0;
+  background: var(--gilt);
+  transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.about-underline:hover::after,
+.about-underline:focus-visible::after {
+  width: 100%;
+}
+
+/* Timeline node activation. */
+.about-step {
+  opacity: 0.45;
+  transition:
+    opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.about-step[data-active="true"] {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .about-reveal {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .about-activate {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .about-step {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .about-signal,
+  .about-signal-up,
+  .about-node-pulse,
+  .about-bar,
+  .about-marquee,
+  .about-tick,
+  .about-scan,
+  .about-play-ring {
+    animation: none;
+  }
+
+  .about-trace,
+  .about-frame-draw {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+
+  .about-node-pop {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .about-underline::after {
+    transition: none;
+  }
+}
