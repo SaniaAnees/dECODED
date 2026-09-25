@@ -73,8 +73,7 @@ export function AboutArticle() {
           </h2>
           <p className="mt-6 max-w-2xl font-serif text-lg leading-relaxed text-mist">
             UseCoded brings the context, tools, models, and workflow around an
-            AI-assisted coding session into a layer that can be shaped around
-            the way you work.
+            AI-assisted coding session into a single layer.
           </p>
         </div>
 
@@ -85,7 +84,7 @@ export function AboutArticle() {
 
       {/* 2 — WHY: the problem */}
       <Band id="why" tone="deep">
-        <p className={EYEBROW}>WHY USECODED EXISTS</p>
+        <p className={EYEBROW}>WHY</p>
         <MissionSequence />
       </Band>
 
@@ -119,7 +118,7 @@ export function AboutArticle() {
 
       {/* 5 — WHO */}
       <Band id="audience" tone="sky">
-        <p className={EYEBROW}>WHO USECODED IS FOR</p>
+        <p className={EYEBROW}>AUDIENCE</p>
         <h2 className={HEADING}>Who we’re building for</h2>
       </Band>
       <div className="mx-auto max-w-6xl">
@@ -128,8 +127,7 @@ export function AboutArticle() {
       <div className="mx-auto max-w-5xl px-6 pb-16 md:px-8 md:pb-24">
         <p className="max-w-2xl font-serif text-lg leading-relaxed text-mist">
           UseCoded starts with AI-assisted software development and expands
-          toward students, hackathon teams, and increasingly personalized
-          workflows.
+          toward students, hackathon teams, and other workflows.
         </p>
         <p className="mt-4 font-serif text-[15px] text-dusk">
           These are intended audiences, not a customer list.
@@ -138,7 +136,7 @@ export function AboutArticle() {
 
       {/* 6 — FOUNDER */}
       <Band id="built-by" tone="sky">
-        <p className={EYEBROW}>BUILT BY</p>
+        <p className={EYEBROW}>FOUNDER</p>
         <h2 className={HEADING}>Built by</h2>
         <div className="mt-10">
           <FounderBlock />
@@ -147,12 +145,8 @@ export function AboutArticle() {
 
       {/* 7 — ORIGIN: the only home for the proxy and normalizer */}
       <Band id="origin" tone="deep">
-        <p className={EYEBROW}>HOW IT STARTED</p>
+        <p className={EYEBROW}>ORIGIN</p>
         <h2 className={HEADING}>How it started</h2>
-        <p className={cn("mt-5 max-w-2xl", BODY)}>
-          UseCoded was not planned as a product from day one. The infrastructure
-          came first, and that work became the foundation for the harness.
-        </p>
         <div className="mt-12">
           <OriginTimeline />
         </div>
@@ -160,14 +154,13 @@ export function AboutArticle() {
 
       {/* 8 — TECHNICAL: how it is structured */}
       <Band id="how-it-works" tone="deep">
-        <p className={EYEBROW}>HOW USECODED WORKS</p>
+        <p className={EYEBROW}>SYSTEM</p>
         <h2 className={HEADING}>How UseCoded works</h2>
         <div className="mt-12 grid gap-12 md:grid-cols-2 md:items-center md:gap-16">
           <HarnessDiagram variant="box" />
           <p className="max-w-xl font-serif text-lg leading-relaxed text-mist">
-            Requests from your workflow enter the harness, which manages
-            context, tools, models, and execution on the way through. The result
-            returns along the same path.
+            Requests from your workflow enter the harness and the result returns
+            along the same path.
           </p>
         </div>
 
@@ -196,7 +189,7 @@ export function AboutArticle() {
 
       {/* 9 — WHERE */}
       <Band id="roadmap" tone="solid">
-        <p className={EYEBROW}>WHERE WE’RE GOING</p>
+        <p className={EYEBROW}>ROADMAP</p>
         <h2 className={HEADING}>Where we’re going</h2>
         <RoadmapPath />
         <p className="mt-10 max-w-2xl font-serif text-[15px] text-dusk">
@@ -206,14 +199,14 @@ export function AboutArticle() {
       </Band>
 
       <Band id="demo" tone="sky">
-        <p className={EYEBROW}>SEE IT IN ACTION</p>
+        <p className={EYEBROW}>ACTION</p>
         <h2 className={HEADING}>See the harness in action</h2>
         <DemoSlot />
       </Band>
 
       {/* 10 — KEY FACTS */}
       <Band id="facts" tone="sky">
-        <p className={EYEBROW}>KEY FACTS</p>
+        <p className={EYEBROW}>FACTS</p>
         <h2 className={HEADING}>Key facts</h2>
         <div className="mt-10 border border-line">
           <table className="w-full border-collapse text-left">
@@ -222,9 +215,7 @@ export function AboutArticle() {
             </caption>
             <tbody className="divide-y divide-line">
               <FactRow label="COMPANY">UseCoded</FactRow>
-              <FactRow label="TYPE">
-                AI coding harness / developer infrastructure
-              </FactRow>
+              <FactRow label="TYPE">Developer infrastructure</FactRow>
               <FactRow label="FOUNDED">2026</FactRow>
               <FactRow label="FOUNDER">{FOUNDER.name}</FactRow>
               <FactRow label="WEBSITE">
@@ -235,9 +226,7 @@ export function AboutArticle() {
                   usecoded.com
                 </a>
               </FactRow>
-              <FactRow label="CORE OFFERING">
-                AI coding harness and context/token optimization infrastructure
-              </FactRow>
+              <FactRow label="CORE OFFERING">AI coding harness</FactRow>
               <FactRow label="CURRENT SPECIALIZED EXPERIENCE">
                 Hackathon Harness
               </FactRow>

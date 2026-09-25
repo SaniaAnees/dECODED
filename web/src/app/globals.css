@@ -777,42 +777,6 @@ body {
   border-bottom: 1px solid var(--line);
 }
 
-/* Audience strip. Pauses on hover and on keyboard focus. */
-.about-marquee-wrap {
-  mask-image: linear-gradient(
-    90deg,
-    transparent 0%,
-    #000 7%,
-    #000 93%,
-    transparent 100%
-  );
-  -webkit-mask-image: linear-gradient(
-    90deg,
-    transparent 0%,
-    #000 7%,
-    #000 93%,
-    transparent 100%
-  );
-}
-
-.about-marquee {
-  animation: about-marquee 38s linear infinite;
-}
-
-.about-marquee-wrap:hover .about-marquee,
-.about-marquee-wrap:focus-within .about-marquee {
-  animation-play-state: paused;
-}
-
-@keyframes about-marquee {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
-}
-
 /* Demo placeholder — paint-only scan, no layout work. */
 .about-scan {
   background-image: linear-gradient(
@@ -857,27 +821,6 @@ body {
     transform: scale(1.07);
     opacity: 1;
   }
-}
-
-/* Typographic hover underline for the composition / principle rows. */
-.about-underline {
-  position: relative;
-}
-
-.about-underline::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  bottom: -0.4rem;
-  height: 1px;
-  width: 0;
-  background: var(--gilt);
-  transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.about-underline:hover::after,
-.about-underline:focus-visible::after {
-  width: 100%;
 }
 
 /* Timeline node activation. */
@@ -943,7 +886,6 @@ body {
 
   .about-signal,
   .about-node-pulse,
-  .about-marquee,
   .about-scan,
   .about-play-ring {
     animation: none;
@@ -952,9 +894,5 @@ body {
   .about-frame-draw {
     animation: none;
     stroke-dashoffset: 0;
-  }
-
-  .about-underline::after {
-    transition: none;
   }
 }

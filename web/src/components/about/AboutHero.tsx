@@ -21,8 +21,7 @@ export function AboutHero() {
           Build at the edge of technology.
         </h1>
         <p className="mt-6 max-w-2xl font-serif text-[1.05rem] leading-relaxed text-[#f7f1e6]/80">
-          UseCoded is building AI coding harnesses that make advanced AI
-          development more accessible, efficient, and personalizable.
+          UseCoded is an AI coding harness.
         </p>
         <p className="mt-5 font-mono text-[11px] tracking-[0.14em] text-dusk">
           Coding · Hackathons · Personalized workflows

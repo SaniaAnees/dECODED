@@ -1,9 +1,5 @@
 const items = [
   {
-    q: "What is UseCoded?",
-    a: "An AI coding harness: the infrastructure layer that holds the context, tools, models, and workflow around an AI-assisted coding session, so the session can be shaped around how you work.",
-  },
-  {
     q: "Why was UseCoded started?",
     a: "By building the underlying infrastructure first and learning where repeated context and drifting request structure were costing real time and money. That work became the foundation for the harness.",
   },
