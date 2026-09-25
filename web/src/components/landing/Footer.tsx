@@ -14,7 +14,6 @@ const groupLabel = "font-mono text-[11px] tracking-[0.28em] text-[#e4b45c]";
 
 const productLinks = [
   { href: "/", label: "Home", kind: "page" as const },
-  { href: "/proxy", label: "Docs", kind: "page" as const },
   { href: "/pricing", label: "Pricing", kind: "page" as const },
   { href: "/about", label: "About", kind: "page" as const },
   { href: "/#waitlist", label: "Updates", kind: "scroll" as const },

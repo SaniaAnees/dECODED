@@ -6,7 +6,6 @@ const ROUTES = [
   "/",
   "/about",
   "/pricing",
-  "/proxy",
   "/privacy",
   "/terms",
   "/refund",

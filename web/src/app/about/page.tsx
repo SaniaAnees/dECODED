@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { AboutArticle } from "@/components/about/AboutArticle";
+import { AboutHero } from "@/components/about/AboutHero";
 import { Footer } from "@/components/landing/Footer";
 import { Header } from "@/components/landing/Header";
 import { SkyPageShell } from "@/components/landing/SkyPageShell";
@@ -38,7 +39,10 @@ export default function AboutPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <Header />
+      <div className="sky-scroll relative z-20 bg-[#0a1228]">
+        <Header />
+        <AboutHero />
+      </div>
       <main className="sky-scroll relative z-10">
         <AboutArticle />
       </main>

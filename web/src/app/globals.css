@@ -704,6 +704,41 @@ body {
   }
 }
 
+/* About hero — word-by-word reveal resolving into the mark. */
+.about-hero-word {
+  opacity: 0;
+  animation: about-hero-word-in 0.85s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes about-hero-word-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5em);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+
+.about-hero-mark {
+  opacity: 0;
+  animation: about-hero-mark-in 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes about-hero-mark-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 /* Full-bleed bands, so consecutive sections are not all the same sky. */
 .about-band-deep {
   background: rgba(8, 14, 32, 0.55);
@@ -880,6 +915,14 @@ body {
     animation: none;
     opacity: 1;
     transform: none;
+  }
+
+  .about-hero-word,
+  .about-hero-mark {
+    animation: none;
+    opacity: 1;
+    transform: none;
+    filter: none;
   }
 
   .about-step {

@@ -2,7 +2,6 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { AboutFaq } from "@/components/about/AboutFaq";
 import { AudienceSpectrum } from "@/components/about/AudienceSpectrum";
-import { BrandInterlude } from "@/components/about/BrandInterlude";
 import { BuildPanels } from "@/components/about/BuildPanels";
 import { DemoSlot } from "@/components/about/DemoSlot";
 import { HackathonFlow } from "@/components/about/HackathonFlow";
@@ -107,35 +106,6 @@ const BAND = {
 export function AboutArticle() {
   return (
     <>
-      {/* Hero */}
-      <section className="mx-auto max-w-5xl px-6 pb-4 pt-12 md:px-8 md:pt-20">
-        <p className={EYEBROW}>ABOUT USECODED</p>
-        <h1
-          className="mt-5 max-w-3xl font-serif text-[2rem] font-medium leading-[1.12] text-[#f7f1e6] sm:text-[2.5rem] md:text-[3rem]"
-          style={{ textShadow: "0 2px 18px rgba(8,14,32,0.55)" }}
-        >
-          Building the harness layer for AI-assisted software development.
-        </h1>
-        <p className="mt-6 max-w-xl font-serif text-[1.05rem] leading-relaxed text-[#f7f1e6]/84">
-          UseCoded is building AI coding infrastructure that makes advanced
-          development workflows more efficient, accessible, and personalizable.
-        </p>
-        <div className="mt-8 flex flex-wrap items-center gap-3">
-          <Link href="/#product" className={BTN_PRIMARY}>
-            Explore UseCoded
-          </Link>
-          <a href="#built-by" className={BTN_SECONDARY}>
-            Meet the builder
-          </a>
-        </div>
-
-        <div className="mt-16 md:mt-20">
-          <HarnessDiagram variant="hero" />
-        </div>
-      </section>
-
-      <BrandInterlude />
-
       {/* Why */}
       <Band id="why" tone="sky">
         <p className={EYEBROW}>WHY USECODED EXISTS</p>

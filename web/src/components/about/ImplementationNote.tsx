@@ -1,6 +1,3 @@
-import Link from "next/link";
-import { PROXY_PATH } from "@/lib/site";
-
 /**
  * The only place on the page where implementation detail lives. Kept as a
  * compact disclosure so it informs without becoming the story.
@@ -27,12 +24,6 @@ export function ImplementationNote() {
           the execution boundary for the workflow. Provider keys stay on that
           machine, and request normalization happens in the same process.
         </p>
-        <Link
-          href={PROXY_PATH}
-          className="mt-4 inline-block font-mono text-[11px] tracking-[0.16em] text-gilt underline-offset-4 transition-colors hover:text-moon hover:underline"
-        >
-          TECHNICAL DETAILS →
-        </Link>
       </div>
     </details>
   );
