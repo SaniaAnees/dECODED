@@ -2,17 +2,13 @@
 
 import { SocialList } from "@/components/about/SocialLinks";
 import { useInView } from "@/components/about/useMotion";
-import { cn } from "@/lib/utils";
 import { FOUNDER } from "@/lib/site";
 
-const INTERESTS = ["AI SYSTEMS", "MULTI-AGENT WORKFLOWS", "CUDA", "RUST", "GO"];
-
 /**
- * ANIMATION 08 — founder.
+ * FOUNDER — the quote, the name, and the approved bio.
  *
- * The quote rises first, then the name, then the technical interests appear one
- * at a time. Deliberately slow and quiet; the paragraph itself is not animated
- * per word.
+ * The bio already names the technical areas, so there is no second technology
+ * list beneath it.
  */
 export function FounderBlock() {
   const { ref, inView } = useInView<HTMLDivElement>(0.2);
@@ -67,24 +63,6 @@ export function FounderBlock() {
           className="flex-wrap items-center gap-x-5 gap-y-3"
         />
       </div>
-
-      <ul
-        aria-label="Areas of interest"
-        className="mt-12 flex flex-wrap items-center gap-x-8 gap-y-3 border-t border-line pt-6"
-      >
-        {INTERESTS.map((label, index) => (
-          <li
-            key={label}
-            className={cn(
-              "about-js-reveal font-mono text-[11px] tracking-[0.22em] text-mist",
-            )}
-            data-visible={inView}
-            style={step(700 + index * 180)}
-          >
-            {label}
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }

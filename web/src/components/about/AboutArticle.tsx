@@ -84,7 +84,7 @@ export function AboutArticle() {
 
       {/* 2 — WHY: the problem */}
       <Band id="why" tone="deep">
-        <p className={EYEBROW}>WHY</p>
+        <p className={EYEBROW}>WHY USECODED EXISTS</p>
         <MissionSequence />
       </Band>
 
@@ -135,7 +135,7 @@ export function AboutArticle() {
       </div>
 
       {/* 6 — FOUNDER */}
-      <Band id="built-by" tone="sky">
+      <Band id="built-by" tone="solid">
         <p className={EYEBROW}>FOUNDER</p>
         <h2 className={HEADING}>Built by</h2>
         <div className="mt-10">
