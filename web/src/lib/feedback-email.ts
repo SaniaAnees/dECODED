@@ -55,22 +55,42 @@ export async function sendFeedbackEmail(
   ];
 
   const resend = new Resend(apiKey);
-  const { error } = await resend.emails.send({
+  const message = {
     from,
-    to,
     replyTo: payload.email,
     subject,
     text: lines.join("\n"),
-  });
+  };
 
-  if (error) {
-    console.error(
-      `feedback email failed for ${to.join(", ")}:`,
-      error.message ?? error,
-    );
-    return false;
+  const { error } = await resend.emails.send({ ...message, to });
+
+  if (!error) return true;
+
+  console.error(
+    `feedback email failed for ${to.join(", ")}:`,
+    error.message ?? error,
+  );
+
+  // A single rejected recipient (e.g. an address whose domain is not verified
+  // yet) must not stop the others from being notified. Retry one at a time.
+  if (to.length === 1) return false;
+
+  let sent = false;
+  for (const recipient of to) {
+    const { error: singleError } = await resend.emails.send({
+      ...message,
+      to: recipient,
+    });
+    if (singleError) {
+      console.error(
+        `feedback email failed for ${recipient}:`,
+        singleError.message ?? singleError,
+      );
+    } else {
+      sent = true;
+    }
   }
-  return true;
+  return sent;
 }
 
 export { isEmailConfigured };
