@@ -1,3 +1,4 @@
+import nodemailer from "nodemailer";
 import { Resend } from "resend";
 import { SITE_NAME } from "@/lib/site";
 
@@ -22,29 +23,143 @@ export function parseRecipients(raw: string | undefined): string[] {
     .filter(Boolean);
 }
 
+type SmtpConfig = {
+  host: string;
+  port: number;
+  secure: boolean;
+  user: string;
+  pass: string;
+};
+
+type MailConfig = {
+  /** Resend sender. */
+  resendFrom: string;
+  resendKey: string | null;
+  /** SMTP sender — the mailbox on our own domain. */
+  smtpFrom: string;
+  smtp: SmtpConfig | null;
+};
+
+function readConfig(): MailConfig {
+  const resendKey = process.env.RESEND_API_KEY?.trim() || null;
+  const resendFrom = process.env.FEEDBACK_FROM_EMAIL?.trim() || "";
+
+  const host = process.env.SMTP_HOST?.trim();
+  const user = process.env.SMTP_USER?.trim();
+  const pass = process.env.SMTP_PASS?.trim();
+  const rawPort = Number(process.env.SMTP_PORT?.trim() || "465");
+  const port = Number.isFinite(rawPort) && rawPort > 0 ? rawPort : 465;
+  const secureEnv = process.env.SMTP_SECURE?.trim().toLowerCase();
+
+  const smtp: SmtpConfig | null =
+    host && user && pass
+      ? {
+          host,
+          port,
+          secure: secureEnv ? secureEnv === "true" : port === 465,
+          user,
+          pass,
+        }
+      : null;
+
+  return {
+    resendKey,
+    resendFrom,
+    smtp,
+    smtpFrom: process.env.SMTP_FROM?.trim() || user || "",
+  };
+}
+
 function isEmailConfigured(): boolean {
+  const config = readConfig();
   return Boolean(
-    process.env.RESEND_API_KEY?.trim() &&
-      parseRecipients(process.env.FEEDBACK_TO_EMAIL).length > 0 &&
-      process.env.FEEDBACK_FROM_EMAIL?.trim(),
+    parseRecipients(process.env.FEEDBACK_TO_EMAIL).length > 0 &&
+      ((config.resendKey && config.resendFrom) || config.smtp),
   );
 }
 
-/** Send owner notification. Returns false if mail env is missing (DB still saved). */
+/** Resend — only reaches addresses its account is permitted to send to. */
+async function sendViaResend(
+  config: MailConfig,
+  payload: FeedbackEmailPayload,
+  subject: string,
+  text: string,
+  recipient: string,
+): Promise<boolean> {
+  if (!config.resendKey || !config.resendFrom) return false;
+
+  const resend = new Resend(config.resendKey);
+  const { error } = await resend.emails.send({
+    from: config.resendFrom,
+    to: recipient,
+    replyTo: payload.email,
+    subject,
+    text,
+  });
+
+  if (error) {
+    console.warn(`resend could not reach ${recipient}:`, error.message ?? error);
+    return false;
+  }
+  return true;
+}
+
+/** SMTP — the mailbox on our own domain, which can send anywhere. */
+async function sendViaSmtp(
+  config: MailConfig,
+  payload: FeedbackEmailPayload,
+  subject: string,
+  text: string,
+  recipient: string,
+): Promise<boolean> {
+  if (!config.smtp || !config.smtpFrom) return false;
+
+  const transporter = nodemailer.createTransport({
+    host: config.smtp.host,
+    port: config.smtp.port,
+    secure: config.smtp.secure,
+    auth: { user: config.smtp.user, pass: config.smtp.pass },
+  });
+
+  try {
+    await transporter.sendMail({
+      from: config.smtpFrom,
+      to: recipient,
+      replyTo: payload.email,
+      subject,
+      text,
+    });
+    return true;
+  } catch (err) {
+    console.error(
+      `smtp could not reach ${recipient}:`,
+      err instanceof Error ? err.message : err,
+    );
+    return false;
+  }
+}
+
+/**
+ * Notify every configured recipient. Each address is attempted on its own, so a
+ * transport that cannot reach one address never blocks the others, and the log
+ * names the transport that carried each one.
+ */
 export async function sendFeedbackEmail(
   payload: FeedbackEmailPayload,
 ): Promise<boolean> {
-  const apiKey = process.env.RESEND_API_KEY?.trim();
+  const config = readConfig();
   const to = parseRecipients(process.env.FEEDBACK_TO_EMAIL);
-  const from = process.env.FEEDBACK_FROM_EMAIL?.trim();
-  if (!apiKey || to.length === 0 || !from) {
-    console.warn("feedback email skipped: RESEND_API_KEY / FEEDBACK_* not set");
+
+  if (to.length === 0 || (!config.resendKey && !config.smtp)) {
+    console.warn(
+      "feedback email skipped: no recipients, or no transport configured",
+    );
     return false;
   }
 
   const topic = payload.topic ?? "other";
   const subject = `[${SITE_NAME} feedback] ${topic} from ${payload.email}`;
-  const lines = [
+  const text = [
     `Topic: ${topic}`,
     `From: ${payload.email}`,
     `When: ${payload.createdAt.toISOString()}`,
@@ -52,45 +167,31 @@ export async function sendFeedbackEmail(
     `User id: ${payload.userId ?? "—"}`,
     "",
     payload.message,
-  ];
+  ].join("\n");
 
-  const resend = new Resend(apiKey);
-  const message = {
-    from,
-    replyTo: payload.email,
-    subject,
-    text: lines.join("\n"),
-  };
+  const delivered: string[] = [];
 
-  const { error } = await resend.emails.send({ ...message, to });
+  for (const recipient of to) {
+    // Resend first — it is the established path. SMTP is the transport that can
+    // reach an address Resend is not permitted to send to.
+    let via: "resend" | "smtp" | null = null;
+    if (await sendViaResend(config, payload, subject, text, recipient)) {
+      via = "resend";
+    } else if (await sendViaSmtp(config, payload, subject, text, recipient)) {
+      via = "smtp";
+    }
 
-  if (!error) return true;
+    if (via) delivered.push(`${recipient} (${via})`);
+    else console.error(`feedback email undelivered to ${recipient}`);
+  }
 
-  console.error(
-    `feedback email failed for ${to.join(", ")}:`,
-    error.message ?? error,
+  console.info(
+    delivered.length
+      ? `feedback email delivered: ${delivered.join(", ")}`
+      : "feedback email delivered to no recipient",
   );
 
-  // A single rejected recipient (e.g. an address whose domain is not verified
-  // yet) must not stop the others from being notified. Retry one at a time.
-  if (to.length === 1) return false;
-
-  let sent = false;
-  for (const recipient of to) {
-    const { error: singleError } = await resend.emails.send({
-      ...message,
-      to: recipient,
-    });
-    if (singleError) {
-      console.error(
-        `feedback email failed for ${recipient}:`,
-        singleError.message ?? singleError,
-      );
-    } else {
-      sent = true;
-    }
-  }
-  return sent;
+  return delivered.length > 0;
 }
 
 export { isEmailConfigured };
