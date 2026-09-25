@@ -579,27 +579,6 @@ body {
    and the hierarchy stay exactly the same.
    ========================================================================== */
 
-/* Section entrance. Scroll-linked in CSS only, so the resting state is fully
-   visible and nothing depends on JavaScript or on a scroll timeline existing. */
-@supports (animation-timeline: view()) {
-  .about-reveal {
-    animation: about-reveal-in linear both;
-    animation-timeline: view();
-    animation-range: entry 0% entry 55%;
-  }
-}
-
-@keyframes about-reveal-in {
-  from {
-    opacity: 0;
-    transform: translateY(14px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
 /* Request signal travelling down a 2.5rem connector. */
 .about-signal {
   animation: about-signal-travel 2.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
@@ -636,50 +615,9 @@ body {
   }
 }
 
-/* Brand interlude — traces draw in, nodes pop, then the wordmark lands. */
-.about-trace {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  animation: about-draw 1.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-
 @keyframes about-draw {
   to {
     stroke-dashoffset: 0;
-  }
-}
-
-.about-node-pop {
-  opacity: 0;
-  animation: about-pop 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-
-@keyframes about-pop {
-  from {
-    opacity: 0;
-    transform: scale(0.72);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-/* Horizontal bars that breathe, used by the context + trust diagrams. */
-.about-bar {
-  transform-origin: left;
-  animation: about-bar-grow 3.4s ease-in-out infinite;
-}
-
-@keyframes about-bar-grow {
-  0%,
-  100% {
-    transform: scaleX(0.4);
-    opacity: 0.55;
-  }
-  50% {
-    transform: scaleX(1);
-    opacity: 1;
   }
 }
 
@@ -718,23 +656,7 @@ body {
   }
 }
 
-/* Hero harness flow — SVG signal travelling a path (paths use pathLength=1). */
-.about-flow-signal {
-  stroke-dasharray: 0.06 0.94;
-  stroke-dashoffset: 1;
-  animation: about-flow-travel 2.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-}
-
-@keyframes about-flow-travel {
-  from {
-    stroke-dashoffset: 1;
-  }
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-/* Nodes lighting in sequence along the flow. */
+/* Sequenced node lighting, used by the hackathon flow. */
 .about-node-lit {
   animation: about-node-lit 2.8s ease-in-out infinite;
 }
@@ -812,29 +734,13 @@ body {
 }
 
 /* ==========================================================================
-   Harness build animation — top of /about.
-   One object (the developer's intent) with the surrounding system assembling
-   around it. Progress comes from normal document scroll; no scroll hijacking.
+   Harness system animation — the single system animation on /about.
+   A coding intent with the surrounding system assembling around it. Progress
+   comes from normal document scroll; no scroll hijacking.
    ========================================================================== */
 
-.hba-cursor {
-  animation: hba-blink 1.1s steps(1, end) infinite;
-}
-
-@keyframes hba-blink {
-  0%,
-  50% {
-    opacity: 1;
-  }
-  51%,
-  100% {
-    opacity: 0.15;
-  }
-}
-
-/* Motion reduced: show the finished state, everything revealed at once. */
-.hba[data-reduced="true"] .hba-hide,
-.hba[data-reduced="true"] .hba-cursor {
+/* Motion reduced: show the assembled system, everything present at once. */
+.hsa[data-reduced="true"] .hsa-hide {
   opacity: 1 !important;
   transform: none !important;
   animation: none !important;
@@ -856,21 +762,7 @@ body {
   }
 }
 
-/* Personalised branches — active branch expands. */
-.about-branch {
-  transition:
-    opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
-    border-color 0.5s cubic-bezier(0.22, 1, 0.36, 1),
-    background-color 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-  opacity: 0.4;
-  transform: scale(0.96);
-}
-
-.about-branch[data-active="true"] {
-  opacity: 1;
-  transform: none;
-}
+/* Personalised harness tabs use the shared panel swap above. */
 
 /* Full-bleed bands, so consecutive sections are not all the same sky. */
 .about-band-deep {
@@ -883,26 +775,6 @@ body {
   background: #0a1228;
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
-}
-
-/* Sequential activation while scrolling. Base state stays fully readable. */
-@supports (animation-timeline: view()) {
-  .about-activate {
-    animation: about-activate-in linear both;
-    animation-timeline: view();
-    animation-range: entry 10% entry 80%;
-  }
-}
-
-@keyframes about-activate-in {
-  from {
-    opacity: 0.32;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
 }
 
 /* Audience strip. Pauses on hover and on keyboard focus. */
@@ -1022,18 +894,6 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .about-reveal {
-    animation: none;
-    opacity: 1;
-    transform: none;
-  }
-
-  .about-activate {
-    animation: none;
-    opacity: 1;
-    transform: none;
-  }
-
   .about-hero-word,
   .about-hero-mark {
     animation: none;
@@ -1042,12 +902,8 @@ body {
     filter: none;
   }
 
-  .about-flow-signal,
   .about-node-lit {
     animation: none;
-  }
-
-  .about-node-lit {
     opacity: 1;
   }
 
@@ -1062,19 +918,13 @@ body {
     transform: none;
   }
 
-  .hba-cursor {
-    animation: none;
-    opacity: 1;
-  }
-
   .about-js-reveal {
     opacity: 1;
     transform: none;
     transition: none;
   }
 
-  .about-mission-row,
-  .about-branch {
+  .about-mission-row {
     opacity: 1;
     transform: none;
     transition: none;
@@ -1093,23 +943,15 @@ body {
 
   .about-signal,
   .about-node-pulse,
-  .about-bar,
   .about-marquee,
   .about-scan,
   .about-play-ring {
     animation: none;
   }
 
-  .about-trace,
   .about-frame-draw {
     animation: none;
     stroke-dashoffset: 0;
-  }
-
-  .about-node-pop {
-    animation: none;
-    opacity: 1;
-    transform: none;
   }
 
   .about-underline::after {

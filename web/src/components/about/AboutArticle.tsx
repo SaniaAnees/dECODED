@@ -3,19 +3,15 @@ import type { ReactNode } from "react";
 import { AboutFaq } from "@/components/about/AboutFaq";
 import { AudienceSpectrum } from "@/components/about/AudienceSpectrum";
 import { BenchmarkBars } from "@/components/about/BenchmarkBars";
-import { BrandInterlude } from "@/components/about/BrandInterlude";
-import { BuildPanels } from "@/components/about/BuildPanels";
-import { ContextTimeline } from "@/components/about/ContextTimeline";
 import { DemoSlot } from "@/components/about/DemoSlot";
 import { FounderBlock } from "@/components/about/FounderBlock";
 import { HackathonFlow } from "@/components/about/HackathonFlow";
-import { HarnessBuildAnimation } from "@/components/about/HarnessBuildAnimation";
 import { HarnessDiagram } from "@/components/about/HarnessDiagram";
+import { HarnessSystemAnimation } from "@/components/about/HarnessSystemAnimation";
 import { ImplementationNote } from "@/components/about/ImplementationNote";
 import { MissionSequence } from "@/components/about/MissionSequence";
 import { OriginTimeline } from "@/components/about/OriginTimeline";
 import { PersonalizedBranches } from "@/components/about/PersonalizedBranches";
-import { Reveal } from "@/components/about/Reveal";
 import { RoadmapPath } from "@/components/about/RoadmapPath";
 import { SectionDivider } from "@/components/about/SectionDivider";
 import { SocialList } from "@/components/about/SocialLinks";
@@ -39,30 +35,12 @@ const BTN_PRIMARY =
 const BTN_SECONDARY =
   "inline-flex h-11 items-center justify-center rounded-md border border-line bg-transparent px-6 font-serif text-[16px] text-moon transition-colors hover:border-gilt/50 hover:bg-ink/40";
 
-const OPTIMIZE = [
-  {
-    word: "Access",
-    body: "More people should be able to work with frontier systems.",
-  },
-  {
-    word: "Efficiency",
-    body: "Cost and context overhead affect how much people can experiment.",
-  },
-  {
-    word: "Agency",
-    body: "The developer should be able to shape the harness around their workflow.",
-  },
-  {
-    word: "Evolution",
-    body: "The harness should evolve as models, tools, and workflows change.",
-  },
-];
-
-const STRIP = [
+/** Technical foundations. Owned by the "how it works" section. */
+const FOUNDATIONS = [
   { title: "LOCAL-FIRST", body: "The current implementation runs locally." },
   {
     title: "DEVELOPER-OWNED",
-    body: "The workflow stays centered around the developer's existing tools.",
+    body: "The workflow stays centered around the tools you already use.",
   },
   {
     title: "VISIBLE",
@@ -83,9 +61,9 @@ const BAND = {
 export function AboutArticle() {
   return (
     <>
-      {/* WHAT WE BUILD — what UseCoded is */}
+      {/* 3 — PRODUCT: what the harness actually does */}
       <section
-        id="what"
+        id="product"
         className="about-band-solid scroll-mt-[4.5rem] border-t border-line"
       >
         <div className="mx-auto max-w-5xl px-6 pt-16 md:px-8 md:pt-24">
@@ -100,110 +78,46 @@ export function AboutArticle() {
           </p>
         </div>
 
-        <HarnessBuildAnimation />
+        <HarnessSystemAnimation />
       </section>
 
       <SectionDivider />
 
-      {/* WHY */}
+      {/* 2 — WHY: the problem */}
       <Band id="why" tone="deep">
         <p className={EYEBROW}>WHY USECODED EXISTS</p>
         <MissionSequence />
       </Band>
 
-      {/* WHAT WE BUILD */}
-      <Band id="builds" tone="sky">
-        <p className={EYEBROW}>WHAT USECODED BUILDS</p>
-        <h2 className={HEADING}>What UseCoded builds</h2>
-        <div className="mt-12">
-          <Reveal>
-            <BuildPanels />
-          </Reveal>
-        </div>
-      </Band>
-
-      {/* CONTEXT */}
-      <Band id="context" tone="deep">
-        <p className={EYEBROW}>CONTEXT + TOKEN EFFICIENCY</p>
-        <h2 className={HEADING}>Every turn carries history.</h2>
-        <p className="mt-5 max-w-2xl font-serif text-xl leading-relaxed text-moon md:text-2xl">
-          Your harness decides what deserves to stay.
-        </p>
-        <ContextTimeline />
-      </Band>
-
-      {/* PERSONALIZATION */}
+      {/* 4 — PERSONALIZATION, with the first specialized harness */}
       <Band id="personalized" tone="solid">
-        <p className={EYEBROW}>PERSONALIZED</p>
+        <p className={EYEBROW}>PERSONALIZED HARNESSES</p>
         <h2 className={HEADING}>One harness. Different ways to build.</h2>
-        <PersonalizedBranches />
-      </Band>
-
-      {/* FIRST SPECIALIZED HARNESS */}
-      <Band id="hackathon" tone="sky">
-        <p className={EYEBROW}>FIRST SPECIALIZED HARNESS</p>
-        <h2 className={HEADING}>Built for hackathons first.</h2>
         <p className={cn("mt-6 max-w-2xl", BODY)}>
-          The first specialized UseCoded experience is being shaped around
-          hackathon teams: giving a specific group a harness designed around its
-          environment, constraints, and workflow.
+          Different workflows need different harness behaviour. The same harness
+          can be shaped around the environment, constraints, and goals of a
+          particular kind of work.
         </p>
-        <div className="mt-14">
-          <HackathonFlow />
+
+        <PersonalizedBranches />
+
+        <div className="mt-16 border-t border-line pt-12">
+          <p className={EYEBROW}>FIRST SPECIALIZED HARNESS</p>
+          <h3 className="mt-5 font-serif text-3xl font-medium leading-tight text-moon md:text-4xl">
+            Built for hackathons first.
+          </h3>
+          <p className="mt-5 max-w-2xl font-serif text-[16px] leading-relaxed text-mist">
+            The first specialized harness is being shaped around hackathon
+            teams: a harness designed around that environment, its constraints,
+            and its workflow.
+          </p>
+          <div className="mt-12">
+            <HackathonFlow />
+          </div>
         </div>
       </Band>
 
-      {/* ORIGIN */}
-      <Band id="origin" tone="deep">
-        <p className={EYEBROW}>HOW IT STARTED</p>
-        <h2 className={HEADING}>How it started</h2>
-        <div className="mt-12">
-          <OriginTimeline />
-        </div>
-      </Band>
-
-      {/* WHAT WE'RE OPTIMIZING FOR */}
-      <Band id="optimizing" tone="deep">
-        <p className={EYEBROW}>WHAT WE’RE OPTIMIZING FOR</p>
-        <h2 className={HEADING}>What we’re optimizing for</h2>
-        <div className="mt-12 grid gap-x-12 gap-y-10 md:grid-cols-2">
-          {OPTIMIZE.map((item) => (
-            <div key={item.word} className="about-activate min-w-0">
-              <h3 className="font-serif text-3xl font-medium uppercase tracking-tight text-moon md:text-4xl">
-                {item.word}
-              </h3>
-              <p className="mt-3 font-serif text-[16px] leading-relaxed text-mist">
-                {item.body}
-              </p>
-            </div>
-          ))}
-        </div>
-      </Band>
-
-      {/* HOW WE THINK */}
-      <Band id="principles" tone="sky">
-        <p className={EYEBROW}>HOW WE THINK</p>
-        <h2 className={cn(HEADING, "text-3xl md:text-4xl")}>
-          How we think about the infrastructure
-        </h2>
-        <div className="mt-10 grid gap-x-8 gap-y-8 md:grid-cols-4">
-          {STRIP.map((item) => (
-            <div
-              key={item.title}
-              className="group border-t border-line pt-4 transition-colors hover:border-gilt"
-            >
-              <h3 className="font-mono text-[12px] tracking-[0.22em] text-gilt">
-                {item.title}
-              </h3>
-              <p className="mt-3 font-serif text-[15px] leading-relaxed text-mist">
-                {item.body}
-              </p>
-            </div>
-          ))}
-        </div>
-      </Band>
-
-      {/* WHO */}
+      {/* 5 — WHO */}
       <Band id="audience" tone="sky">
         <p className={EYEBROW}>WHO USECODED IS FOR</p>
         <h2 className={HEADING}>Who we’re building for</h2>
@@ -222,10 +136,7 @@ export function AboutArticle() {
         </p>
       </div>
 
-      {/* The single brand interlude */}
-      <BrandInterlude />
-
-      {/* FOUNDER */}
+      {/* 6 — FOUNDER */}
       <Band id="built-by" tone="sky">
         <p className={EYEBROW}>BUILT BY</p>
         <h2 className={HEADING}>Built by</h2>
@@ -234,7 +145,20 @@ export function AboutArticle() {
         </div>
       </Band>
 
-      {/* HOW IT WORKS */}
+      {/* 7 — ORIGIN: the only home for the proxy and normalizer */}
+      <Band id="origin" tone="deep">
+        <p className={EYEBROW}>HOW IT STARTED</p>
+        <h2 className={HEADING}>How it started</h2>
+        <p className={cn("mt-5 max-w-2xl", BODY)}>
+          UseCoded was not planned as a product from day one. The infrastructure
+          came first, and that work became the foundation for the harness.
+        </p>
+        <div className="mt-12">
+          <OriginTimeline />
+        </div>
+      </Band>
+
+      {/* 8 — TECHNICAL: how it is structured */}
       <Band id="how-it-works" tone="deep">
         <p className={EYEBROW}>HOW USECODED WORKS</p>
         <h2 className={HEADING}>How UseCoded works</h2>
@@ -242,21 +166,35 @@ export function AboutArticle() {
           <HarnessDiagram variant="box" />
           <p className="max-w-xl font-serif text-lg leading-relaxed text-mist">
             Requests from your workflow enter the harness, which manages
-            context, tools, models, and execution on the way through. The
-            result returns along the same path.
+            context, tools, models, and execution on the way through. The result
+            returns along the same path.
           </p>
         </div>
+
+        <div className="mt-14 grid gap-x-8 gap-y-8 md:grid-cols-4">
+          {FOUNDATIONS.map((item) => (
+            <div key={item.title} className="border-t border-line pt-4">
+              <h3 className="font-mono text-[12px] tracking-[0.22em] text-gilt">
+                {item.title}
+              </h3>
+              <p className="mt-3 font-serif text-[15px] leading-relaxed text-mist">
+                {item.body}
+              </p>
+            </div>
+          ))}
+        </div>
+
         <ImplementationNote />
       </Band>
 
-      {/* PROOF */}
+      {/* PROOF — the only place with measured data */}
       <Band id="proof" tone="sky">
         <p className={EYEBROW}>PROOF</p>
         <h2 className={HEADING}>Built to be measured.</h2>
         <BenchmarkBars />
       </Band>
 
-      {/* WHERE */}
+      {/* 9 — WHERE */}
       <Band id="roadmap" tone="solid">
         <p className={EYEBROW}>WHERE WE’RE GOING</p>
         <h2 className={HEADING}>Where we’re going</h2>
@@ -267,14 +205,13 @@ export function AboutArticle() {
         </p>
       </Band>
 
-      {/* DEMO */}
       <Band id="demo" tone="sky">
         <p className={EYEBROW}>SEE IT IN ACTION</p>
         <h2 className={HEADING}>See the harness in action</h2>
         <DemoSlot />
       </Band>
 
-      {/* KEY FACTS */}
+      {/* 10 — KEY FACTS */}
       <Band id="facts" tone="sky">
         <p className={EYEBROW}>KEY FACTS</p>
         <h2 className={HEADING}>Key facts</h2>
@@ -319,9 +256,10 @@ export function AboutArticle() {
         </div>
       </Band>
 
+      {/* 11 — FAQ */}
       <AboutFaq />
 
-      {/* Closing */}
+      {/* 12 — CTA */}
       <Band id="start" tone="solid">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="font-mono text-[13px] tracking-[0.34em] text-gilt md:text-[15px]">

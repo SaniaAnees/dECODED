@@ -1,27 +1,23 @@
 const items = [
   {
     q: "What is UseCoded?",
-    a: "An AI coding harness: the infrastructure layer around the coding workflow. It connects context, tools, models, and execution.",
+    a: "An AI coding harness: the infrastructure layer that holds the context, tools, models, and workflow around an AI-assisted coding session, so the session can be shaped around how you work.",
   },
   {
     q: "Why was UseCoded started?",
-    a: "From experimenting with coding agents and finding that repeated context and drifting request structure were costing real time and money.",
+    a: "By building the underlying infrastructure first and learning where repeated context and drifting request structure were costing real time and money. That work became the foundation for the harness.",
   },
   {
     q: "Who is UseCoded for?",
-    a: "Developers and teams running AI coding agents, plus solo builders who care about efficiency. Students and hackathon teams are part of the direction.",
+    a: "Developers and engineering teams running AI coding agents, plus solo builders who care about efficiency. Students and hackathon teams are part of the direction.",
   },
   {
     q: "Does UseCoded replace my coding agent?",
-    a: "No. It sits around the agent you already use, so you keep your agent and your provider key.",
-  },
-  {
-    q: "What does the AI coding harness do?",
-    a: "It manages the layer between the developer, context, tools, models, and execution, keeping that path stable rather than replacing your agent.",
+    a: "No. It is the layer around the workflow you already run, so you keep your agent and your provider key.",
   },
   {
     q: "How does UseCoded approach context and token efficiency?",
-    a: "It focuses on repeated context and request structure, so the parts that repeat stay stable and can be cached. The target is unnecessary repeated context, not a fixed percentage.",
+    a: "It treats repeated context and request structure as first-class problems, so the parts that repeat stay stable and can be reused. The target is unnecessary repeated context, not a fixed percentage.",
   },
   {
     q: "What is a personalized harness?",
@@ -29,7 +25,7 @@ const items = [
   },
   {
     q: "What is the Hackathon Harness?",
-    a: "The first specialized harness, shaped around hackathon teams. It is being shipped, not a public adoption claim.",
+    a: "The first specialized harness, shaped around hackathon teams and their environment. It is being shipped, not a public adoption claim.",
   },
   {
     q: "Where does UseCoded run?",

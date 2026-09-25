@@ -1,4 +1,3 @@
-import { HeroFlow } from "@/components/about/HeroFlow";
 import { Wordmark } from "@/components/landing/Wordmark";
 
 const LINES = ["Build", "at the edge", "of technology"];
@@ -59,10 +58,6 @@ export function AboutHero() {
           style={{ animationDelay: `${MARK_DELAY_MS}ms` }}
         >
           <Wordmark link={false} className="text-xl text-[#f7f1e6] md:text-2xl" />
-        </div>
-
-        <div className="mt-20 md:mt-24">
-          <HeroFlow />
         </div>
       </div>
     </section>

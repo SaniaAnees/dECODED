@@ -2,18 +2,25 @@
 
 import { useStepObserver } from "@/components/about/useMotion";
 
+/**
+ * WHY — the problem, one concept at a time as it crosses the viewport.
+ *
+ * This section owns the problem statement only. How the harness answers it is
+ * owned by the product section; the direction it enables is owned by the
+ * personalization section.
+ */
 const CONCEPTS = [
   {
-    word: "Access",
-    body: "Lower practical barriers of cost and complexity.",
+    word: "Cost",
+    body: "Advanced coding workflows are powerful, but running them at length gets expensive.",
   },
   {
-    word: "Efficiency",
-    body: "Make advanced AI development more economical to run and iterate.",
+    word: "Context",
+    body: "Long sessions accumulate context, and much of it is carried further than it needs to be.",
   },
   {
-    word: "Personalization",
-    body: "Let the harness adapt to the person and workflow.",
+    word: "Shape",
+    body: "Most setups are fixed, so they rarely fit how a particular developer actually works.",
   },
 ];
 
