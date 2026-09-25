@@ -12,7 +12,9 @@ if (!token) {
 
 const vars = {
   RESEND_API_KEY: process.env.RESEND_API_KEY?.trim(),
-  FEEDBACK_TO_EMAIL: process.env.FEEDBACK_TO_EMAIL?.trim() || "saniaanees91@gmail.com",
+  FEEDBACK_TO_EMAIL:
+    process.env.FEEDBACK_TO_EMAIL?.trim() ||
+    "saniaanees91@gmail.com,sania@usecoded.com",
   FEEDBACK_FROM_EMAIL:
     process.env.FEEDBACK_FROM_EMAIL?.trim() || "onboarding@resend.dev",
 };

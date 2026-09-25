@@ -10,10 +10,22 @@ export type FeedbackEmailPayload = {
   page: string | null;
 };
 
+/**
+ * FEEDBACK_TO_EMAIL takes one address or several, separated by commas,
+ * semicolons or whitespace, so feedback can go to more than one inbox.
+ */
+export function parseRecipients(raw: string | undefined): string[] {
+  if (!raw) return [];
+  return raw
+    .split(/[,;\s]+/)
+    .map((value) => value.trim())
+    .filter(Boolean);
+}
+
 function isEmailConfigured(): boolean {
   return Boolean(
     process.env.RESEND_API_KEY?.trim() &&
-      process.env.FEEDBACK_TO_EMAIL?.trim() &&
+      parseRecipients(process.env.FEEDBACK_TO_EMAIL).length > 0 &&
       process.env.FEEDBACK_FROM_EMAIL?.trim(),
   );
 }
@@ -23,9 +35,9 @@ export async function sendFeedbackEmail(
   payload: FeedbackEmailPayload,
 ): Promise<boolean> {
   const apiKey = process.env.RESEND_API_KEY?.trim();
-  const to = process.env.FEEDBACK_TO_EMAIL?.trim();
+  const to = parseRecipients(process.env.FEEDBACK_TO_EMAIL);
   const from = process.env.FEEDBACK_FROM_EMAIL?.trim();
-  if (!apiKey || !to || !from) {
+  if (!apiKey || to.length === 0 || !from) {
     console.warn("feedback email skipped: RESEND_API_KEY / FEEDBACK_* not set");
     return false;
   }
@@ -52,7 +64,10 @@ export async function sendFeedbackEmail(
   });
 
   if (error) {
-    console.error("feedback email failed:", error.message ?? error);
+    console.error(
+      `feedback email failed for ${to.join(", ")}:`,
+      error.message ?? error,
+    );
     return false;
   }
   return true;
