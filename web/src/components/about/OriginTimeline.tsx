@@ -53,7 +53,7 @@ const STEPS: Step[] = [
  * never read as the current product.
  */
 export function OriginTimeline() {
-  const railRef = useScrollProgressVar<HTMLDivElement>("--p", "cover");
+  const railRef = useScrollProgressVar<HTMLDivElement>("--p");
   const [reached, setReached] = useState(0);
   const itemRefs = useRef<(HTMLLIElement | null)[]>([]);
 

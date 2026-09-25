@@ -1,89 +1,73 @@
 "use client";
 
-import { useScrollProgressVar } from "@/components/about/useMotion";
+import { useInView } from "@/components/about/useMotion";
 
-const TURNS = ["TURN 01", "TURN 02", "TURN 03", "TURN 04"];
+const TURNS = [
+  { label: "TURN 1", width: 42 },
+  { label: "TURN 2", width: 56 },
+  { label: "TURN 3", width: 70 },
+];
 
 /**
- * ANIMATION 03 — context visualization.
+ * CONTEXT — why context management matters.
  *
- * Continuous scroll progress drives the transform directly through the `--p`
- * custom property (no re-render). The repeated portion of every turn collapses
- * and the changed portion slides into its place, while the anchored block on
- * the left fills in: repeated context stays stable, only the delta moves.
- * Transform and opacity only, so nothing triggers layout.
+ * Normal flow. On entering view the turn bars grow from the left, then the
+ * breakdown appears: the shared part is repeated, only the remainder is new.
+ * No percentages and no invented figures.
  */
 export function ContextTimeline() {
-  const ref = useScrollProgressVar<HTMLDivElement>();
+  const { ref, inView } = useInView<HTMLDivElement>(0.3);
 
   return (
-    <div ref={ref} className="relative" style={{ height: "220vh" }}>
-      <div className="sticky top-[4.5rem] flex min-h-[calc(100vh-4.5rem)] items-center">
-        <div className="grid w-full gap-12 md:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] md:items-center">
-          <div className="flex items-center gap-5">
-            <div className="relative h-44 w-14 shrink-0 overflow-hidden border border-gilt/50 bg-gilt/10 md:h-52">
+    <div ref={ref} className="mt-12">
+      <ol className="space-y-4">
+        {TURNS.map((turn, index) => (
+          <li key={turn.label} className="flex items-center gap-4">
+            <span className="w-16 shrink-0 font-mono text-[10px] tracking-[0.14em] text-dusk">
+              {turn.label}
+            </span>
+            <span className="flex h-3 flex-1 items-center">
               <span
                 aria-hidden
-                className="absolute inset-0 origin-top bg-gilt/55"
-                style={{ transform: "scaleY(calc(0.22 + 0.78 * var(--p, 0)))" }}
+                className="h-3 origin-left bg-gilt/45"
+                style={{
+                  width: `${turn.width}%`,
+                  transform: inView ? "scaleX(1)" : "scaleX(0)",
+                  transition: `transform 0.7s cubic-bezier(0.22,1,0.36,1) ${index * 120}ms`,
+                }}
               />
-            </div>
-            <div>
-              <p className="font-mono text-[11px] tracking-[0.2em] text-gilt">
-                REPEATED CONTEXT
-              </p>
-              <p className="mt-2 max-w-[15rem] font-serif text-[15px] leading-relaxed text-mist">
-                Held stable across turns. It does not move.
-              </p>
-              <p
-                className="mt-4 font-mono text-[10px] tracking-[0.16em] text-dusk"
-                style={{ opacity: "calc(1 - var(--p, 0))" }}
-              >
-                BEFORE · CARRIED EVERY TURN
-              </p>
-              <p
-                className="font-mono text-[10px] tracking-[0.16em] text-gilt"
-                style={{ opacity: "var(--p, 0)" }}
-              >
-                AFTER · CARRIED ONCE
-              </p>
-            </div>
-          </div>
+            </span>
+          </li>
+        ))}
+      </ol>
 
-          <ol className="space-y-4">
-            {TURNS.map((turn) => (
-              <li key={turn} className="flex items-center gap-4">
-                <span className="w-16 shrink-0 font-mono text-[10px] tracking-[0.14em] text-dusk">
-                  {turn}
-                </span>
-                <span className="relative flex h-3 flex-1 overflow-hidden">
-                  <span
-                    aria-hidden
-                    className="h-full origin-right bg-gilt/45"
-                    style={{
-                      width: "62%",
-                      transform: "scaleX(calc(1 - var(--p, 0)))",
-                    }}
-                  />
-                  <span
-                    aria-hidden
-                    className="h-full bg-line"
-                    style={{
-                      width: "38%",
-                      transform: "translateX(calc(-163% * var(--p, 0)))",
-                    }}
-                  />
-                </span>
-              </li>
-            ))}
-          </ol>
+      <div
+        className="mt-10 grid gap-6 border-t border-line pt-6 sm:grid-cols-2"
+        style={{
+          opacity: inView ? 1 : 0,
+          transform: inView ? "none" : "translateY(10px)",
+          transition:
+            "opacity 0.6s cubic-bezier(0.22,1,0.36,1) 420ms, transform 0.6s cubic-bezier(0.22,1,0.36,1) 420ms",
+        }}
+      >
+        <div>
+          <p className="font-mono text-[11px] tracking-[0.2em] text-gilt">
+            REPEATED
+          </p>
+          <span aria-hidden className="mt-3 block h-3 w-[42%] bg-gilt/60" />
+          <p className="mt-3 font-serif text-[15px] leading-relaxed text-mist">
+            Carried every turn. It can be held stable instead.
+          </p>
         </div>
-      </div>
-
-      <div className="pointer-events-none absolute inset-x-0 bottom-16 mx-auto max-w-5xl px-6 md:px-8">
-        <p className="max-w-xl font-serif text-[15px] leading-relaxed text-mist">
-          Repeated context can be kept stable while new information changes.
-        </p>
+        <div>
+          <p className="font-mono text-[11px] tracking-[0.2em] text-dusk">
+            NEW
+          </p>
+          <span aria-hidden className="mt-3 block h-3 w-[14%] bg-line" />
+          <p className="mt-3 font-serif text-[15px] leading-relaxed text-mist">
+            The only part that actually changes.
+          </p>
+        </div>
       </div>
     </div>
   );

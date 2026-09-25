@@ -605,10 +605,6 @@ body {
   animation: about-signal-travel 2.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
-.about-signal-up {
-  animation: about-signal-travel-up 2.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-}
-
 @keyframes about-signal-travel {
   0% {
     transform: translateY(-0.35rem);
@@ -622,23 +618,6 @@ body {
   }
   100% {
     transform: translateY(2.5rem);
-    opacity: 0;
-  }
-}
-
-@keyframes about-signal-travel-up {
-  0% {
-    transform: translateY(2.5rem);
-    opacity: 0;
-  }
-  18% {
-    opacity: 1;
-  }
-  78% {
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(-0.35rem);
     opacity: 0;
   }
 }
@@ -782,13 +761,6 @@ body {
   transform: scaleX(1);
 }
 
-/* Horizontal roadmap path drawing. */
-.about-path-fill {
-  transform-origin: left;
-  transform: scaleX(var(--p, 0));
-  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
 /* Mission sequence — concepts take focus in turn. */
 .about-mission-row {
   opacity: 0.28;
@@ -837,6 +809,22 @@ body {
 .about-js-reveal[data-visible="true"] {
   opacity: 1;
   transform: none;
+}
+
+/* Harness panel swap — quiet, no layout transition. */
+.about-panel-in {
+  animation: about-panel-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes about-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* Personalised branches — active branch expands. */
@@ -921,22 +909,6 @@ body {
   }
   to {
     transform: translateX(-50%);
-  }
-}
-
-/* Interest ticker — sequential emphasis, never hides a label. */
-.about-tick {
-  animation: about-tick 12s ease-in-out infinite;
-}
-
-@keyframes about-tick {
-  0%,
-  100% {
-    opacity: 0.5;
-  }
-  6%,
-  16% {
-    opacity: 1;
   }
 }
 
@@ -1055,9 +1027,10 @@ body {
     transform: scaleX(1);
   }
 
-  .about-path-fill {
-    transition: none;
-    transform: scaleX(1);
+  .about-panel-in {
+    animation: none;
+    opacity: 1;
+    transform: none;
   }
 
   .about-js-reveal {
@@ -1085,11 +1058,9 @@ body {
   }
 
   .about-signal,
-  .about-signal-up,
   .about-node-pulse,
   .about-bar,
   .about-marquee,
-  .about-tick,
   .about-scan,
   .about-play-ring {
     animation: none;

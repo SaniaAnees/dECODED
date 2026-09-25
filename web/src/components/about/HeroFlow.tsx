@@ -1,46 +1,164 @@
 /**
- * ANIMATION 01 — hero harness flow.
+ * Hero / product visual.
  *
- * A looping SVG: the developer activates, a signal travels down into UseCoded,
- * context / tools / models illuminate one at a time, and the signal exits
- * toward the result. Pure CSS on SVG (stroke-dashoffset + opacity), so it runs
- * on the compositor and never re-renders. Reduced motion holds every node lit.
+ * One architecture, readable with every animation disabled: the developer's
+ * request enters the UseCoded harness, which contains context, tools, models
+ * and the workflow, and leaves as a result. There is no separate agent layer.
+ *
+ * Motion is a single signal travelling the wires plus a pulsing indicator per
+ * node — CSS on SVG, stroke-dashoffset and opacity only.
  */
 const CYCLE = 2.8;
 
-const NODES = [
-  { id: "developer", x: 70, y: 6, w: 120, h: 32, label: "Developer", delay: 0 },
-  { id: "usecoded", x: 40, y: 74, w: 180, h: 58, label: "USECODED", delay: 0.5 },
-  { id: "context", x: 8, y: 158, w: 76, h: 32, label: "Context", delay: 1.1 },
-  { id: "tools", x: 92, y: 158, w: 76, h: 32, label: "Tools", delay: 1.35 },
-  { id: "models", x: 176, y: 158, w: 76, h: 32, label: "Models", delay: 1.6 },
-  { id: "result", x: 80, y: 232, w: 100, h: 32, label: "Result", delay: 2.25 },
+const WIRES = [
+  { d: "M130 34 L130 62", delay: 0.15 },
+  { d: "M130 186 L130 212", delay: 1.6 },
 ];
 
-/** Connectors, each with the delay at which its signal travels. */
-const WIRES = [
-  { d: "M130 38 L130 74", delay: 0.2 },
-  { d: "M130 132 L130 158", delay: 0.8 },
-  { d: "M46 190 L46 210 L214 210 L214 190", delay: 1.85 },
-  { d: "M130 210 L130 232", delay: 2.1 },
+const INTERNALS = [
+  { label: "Context", y: 124, delay: 0.75 },
+  { label: "Tools", y: 141, delay: 0.95 },
+  { label: "Models", y: 158, delay: 1.15 },
+  { label: "Workflow", y: 175, delay: 1.35 },
 ];
 
 export function HeroFlow() {
   return (
     <svg
-      viewBox="0 0 260 264"
+      viewBox="0 0 260 246"
       role="img"
-      aria-label="A developer request travels into the UseCoded harness, through context, tools and models, and out as a result."
-      className="mx-auto w-full max-w-[320px]"
+      aria-label="The developer's request enters the UseCoded AI coding harness, which contains context, tools, models and workflow, and leaves as a result."
+      className="mx-auto w-full max-w-[340px]"
     >
-      <title>UseCoded harness flow</title>
+      <title>UseCoded AI coding harness</title>
 
+      {/* Developer */}
+      <rect
+        x="70"
+        y="6"
+        width="120"
+        height="28"
+        fill="rgba(8,14,32,0.4)"
+        stroke="var(--color-line)"
+      />
+      <text
+        x="130"
+        y="24"
+        textAnchor="middle"
+        className="fill-moon font-mono"
+        fontSize="9"
+        letterSpacing="1.2"
+      >
+        DEVELOPER
+      </text>
+      <circle
+        cx="76"
+        cy="20"
+        r="2"
+        className="about-node-lit fill-gilt"
+        style={{ animationDelay: "0s", animationDuration: `${CYCLE}s` }}
+      />
+
+      {/* Harness */}
+      <rect
+        x="28"
+        y="62"
+        width="204"
+        height="124"
+        fill="rgba(228,180,92,0.10)"
+        stroke="var(--color-gilt)"
+      />
+      <text
+        x="130"
+        y="84"
+        textAnchor="middle"
+        className="fill-gilt font-mono"
+        fontSize="9"
+        letterSpacing="1.8"
+      >
+        USECODED
+      </text>
+      <text
+        x="130"
+        y="102"
+        textAnchor="middle"
+        className="fill-moon font-serif"
+        fontSize="12"
+      >
+        AI Coding Harness
+      </text>
+      <circle
+        cx="34"
+        cy="78"
+        r="2"
+        className="about-node-lit fill-gilt"
+        style={{ animationDelay: "0.45s", animationDuration: `${CYCLE}s` }}
+      />
+      <line
+        x1="42"
+        y1="112"
+        x2="218"
+        y2="112"
+        stroke="var(--color-line)"
+      />
+
+      {INTERNALS.map((row) => (
+        <g key={row.label}>
+          <circle
+            cx="46"
+            cy={row.y - 4}
+            r="2"
+            className="about-node-lit fill-gilt"
+            style={{
+              animationDelay: `${row.delay}s`,
+              animationDuration: `${CYCLE}s`,
+            }}
+          />
+          <text
+            x="60"
+            y={row.y}
+            className="fill-moon font-mono"
+            fontSize="9"
+            letterSpacing="0.8"
+          >
+            {row.label.toUpperCase()}
+          </text>
+        </g>
+      ))}
+
+      {/* Result */}
+      <rect
+        x="80"
+        y="212"
+        width="100"
+        height="28"
+        fill="rgba(8,14,32,0.4)"
+        stroke="var(--color-line)"
+      />
+      <text
+        x="130"
+        y="230"
+        textAnchor="middle"
+        className="fill-moon font-mono"
+        fontSize="9"
+        letterSpacing="1.2"
+      >
+        RESULT
+      </text>
+      <circle
+        cx="86"
+        cy="226"
+        r="2"
+        className="about-node-lit fill-gilt"
+        style={{ animationDelay: "1.9s", animationDuration: `${CYCLE}s` }}
+      />
+
+      {/* Wires: static track + travelling signal */}
       <g stroke="var(--color-line)" strokeWidth="1" fill="none">
         {WIRES.map((wire) => (
           <path key={wire.d} d={wire.d} />
         ))}
       </g>
-
       <g
         stroke="var(--color-gilt)"
         strokeWidth="1.5"
@@ -53,74 +171,13 @@ export function HeroFlow() {
             d={wire.d}
             pathLength={1}
             className="about-flow-signal"
-            style={{ animationDelay: `${wire.delay}s`, animationDuration: `${CYCLE}s` }}
+            style={{
+              animationDelay: `${wire.delay}s`,
+              animationDuration: `${CYCLE}s`,
+            }}
           />
         ))}
       </g>
-
-      {NODES.map((node) => {
-        const isHarness = node.id === "usecoded";
-        return (
-          <g
-            key={node.id}
-            className="about-node-lit"
-            style={{ animationDelay: `${node.delay}s`, animationDuration: `${CYCLE}s` }}
-          >
-            {isHarness ? (
-              <>
-                <rect
-                  x={node.x}
-                  y={node.y}
-                  width={node.w}
-                  height={node.h}
-                  fill="rgba(228,180,92,0.10)"
-                  stroke="var(--color-gilt)"
-                />
-                <text
-                  x={node.x + node.w / 2}
-                  y={node.y + 22}
-                  textAnchor="middle"
-                  className="fill-gilt font-mono"
-                  fontSize="9"
-                  letterSpacing="1.6"
-                >
-                  USECODED
-                </text>
-                <text
-                  x={node.x + node.w / 2}
-                  y={node.y + 40}
-                  textAnchor="middle"
-                  className="fill-moon font-serif"
-                  fontSize="13"
-                >
-                  AI Coding Harness
-                </text>
-              </>
-            ) : (
-              <>
-                <rect
-                  x={node.x}
-                  y={node.y}
-                  width={node.w}
-                  height={node.h}
-                  fill="rgba(8,14,32,0.4)"
-                  stroke="var(--color-line)"
-                />
-                <text
-                  x={node.x + node.w / 2}
-                  y={node.y + node.h / 2 + 3}
-                  textAnchor="middle"
-                  className="fill-moon font-mono"
-                  fontSize="9"
-                  letterSpacing="1"
-                >
-                  {node.label.toUpperCase()}
-                </text>
-              </>
-            )}
-          </g>
-        );
-      })}
     </svg>
   );
 }

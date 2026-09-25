@@ -5,23 +5,22 @@ import { prefersReducedMotion, useInView } from "@/components/about/useMotion";
 import { cn } from "@/lib/utils";
 
 /**
- * Recorded Phase B pilot — two tasks, same model, three harnesses.
- * Shown as a labelled pilot, never as a general product claim.
+ * Recorded TB2 pilot — two tasks, same model, three harnesses.
+ * Shown as a labelled pilot, never as a general benchmark guarantee.
  */
 const ROWS = [
-  { name: "OpenCode", k: 77.3, highlight: false },
-  { name: "usecoded-dev", k: 59.2, highlight: false },
-  { name: "usecoded-v2", k: 49.3, highlight: true },
+  { name: "OpenCode", k: 160.3, highlight: false },
+  { name: "usecoded-dev", k: 230.5, highlight: false },
+  { name: "usecoded-v2", k: 123.4, highlight: true },
 ];
 
-const MAX = 77.3;
+const MAX = 230.5;
 
 /**
- * ANIMATION 07 — benchmark / proof.
+ * PROOF — measured, not asserted.
  *
- * On entering view the bars grow from zero and the value counters tick up to
- * the recorded figure, with the v2 row settling last and highlighted. Bars use
- * transform only; counters run on requestAnimationFrame.
+ * Entering view grows the bars from zero and counts the values up to the
+ * recorded figures. Transform for the bars, rAF for the counters.
  */
 export function BenchmarkBars() {
   const { ref, inView } = useInView<HTMLDivElement>(0.3);
@@ -48,7 +47,7 @@ export function BenchmarkBars() {
     <div ref={ref} className="mt-10 border border-line bg-ink/40 p-6 md:p-8">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line pb-4">
         <p className="font-mono text-[10px] tracking-[0.22em] text-gilt">
-          TERMINAL-BENCH PILOT
+          TB2 PILOT
         </p>
         <p className="font-mono text-[10px] tracking-[0.16em] text-dusk">
           2-TASK PILOT
@@ -76,10 +75,7 @@ export function BenchmarkBars() {
                 {values[index].toFixed(1)}K input
               </dd>
             </div>
-            <span
-              aria-hidden
-              className="mt-2 block h-2 w-full bg-line/50"
-            >
+            <span aria-hidden className="mt-2 block h-2 w-full bg-line/50">
               <span
                 className={cn(
                   "about-bar-line block h-2",
@@ -100,7 +96,7 @@ export function BenchmarkBars() {
         Same model. Same tasks. Different harness.
       </p>
       <p className="mt-3 max-w-xl font-mono text-[10px] tracking-[0.14em] text-dusk">
-        TWO TASKS · NOT A GENERALIZED PRODUCT CLAIM
+        TWO TASKS, RECORDED · NOT A GENERAL BENCHMARK GUARANTEE
       </p>
     </div>
   );

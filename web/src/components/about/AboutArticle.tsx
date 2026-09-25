@@ -78,48 +78,14 @@ const BAND = {
   solid: "about-band-solid",
 } as const;
 
-/** Section label block placed above a pinned (sticky) animation. */
-function PinHeading({
-  id,
-  eyebrow,
-  title,
-  lead,
-  tone,
-  children,
-}: {
-  id: string;
-  eyebrow: string;
-  title?: string;
-  lead?: string;
-  tone: keyof typeof BAND;
-  children: ReactNode;
-}) {
-  return (
-    <section
-      id={id}
-      className={cn("scroll-mt-[4.5rem] border-t border-line", BAND[tone])}
-    >
-      <div className="mx-auto max-w-5xl px-6 pt-16 md:px-8 md:pt-20">
-        <p className={EYEBROW}>{eyebrow}</p>
-        {title ? <h2 className={HEADING}>{title}</h2> : null}
-        {lead ? (
-          <p className="mt-5 max-w-2xl font-serif text-xl leading-relaxed text-moon md:text-2xl">
-            {lead}
-          </p>
-        ) : null}
-      </div>
-      {children}
-    </section>
-  );
-}
-
 export function AboutArticle() {
   return (
     <>
-      {/* WHY — pinned mission sequence */}
-      <PinHeading id="why" eyebrow="WHY USECODED EXISTS" tone="deep">
+      {/* WHY */}
+      <Band id="why" tone="deep">
+        <p className={EYEBROW}>WHY USECODED EXISTS</p>
         <MissionSequence />
-      </PinHeading>
+      </Band>
 
       {/* WHAT WE BUILD */}
       <Band id="builds" tone="sky">
@@ -132,26 +98,22 @@ export function AboutArticle() {
         </div>
       </Band>
 
-      {/* CONTEXT — pinned scroll transform */}
-      <PinHeading
-        id="context"
-        eyebrow="CONTEXT + TOKEN EFFICIENCY"
-        title="Every turn carries history."
-        lead="Your harness decides what deserves to stay."
-        tone="deep"
-      >
+      {/* CONTEXT */}
+      <Band id="context" tone="deep">
+        <p className={EYEBROW}>CONTEXT + TOKEN EFFICIENCY</p>
+        <h2 className={HEADING}>Every turn carries history.</h2>
+        <p className="mt-5 max-w-2xl font-serif text-xl leading-relaxed text-moon md:text-2xl">
+          Your harness decides what deserves to stay.
+        </p>
         <ContextTimeline />
-      </PinHeading>
+      </Band>
 
-      {/* PERSONALIZED — pinned branch sequence */}
-      <PinHeading
-        id="personalized"
-        eyebrow="PERSONALIZED"
-        title="One harness. Different ways to build."
-        tone="solid"
-      >
+      {/* PERSONALIZATION */}
+      <Band id="personalized" tone="solid">
+        <p className={EYEBROW}>PERSONALIZED</p>
+        <h2 className={HEADING}>One harness. Different ways to build.</h2>
         <PersonalizedBranches />
-      </PinHeading>
+      </Band>
 
       {/* FIRST SPECIALIZED HARNESS */}
       <Band id="hackathon" tone="sky">
@@ -164,6 +126,15 @@ export function AboutArticle() {
         </p>
         <div className="mt-14">
           <HackathonFlow />
+        </div>
+      </Band>
+
+      {/* ORIGIN */}
+      <Band id="origin" tone="deep">
+        <p className={EYEBROW}>HOW IT STARTED</p>
+        <h2 className={HEADING}>How it started</h2>
+        <div className="mt-12">
+          <OriginTimeline />
         </div>
       </Band>
 
@@ -227,15 +198,6 @@ export function AboutArticle() {
         </p>
       </div>
 
-      {/* HOW IT STARTED — drawn timeline */}
-      <Band id="origin" tone="deep">
-        <p className={EYEBROW}>HOW IT STARTED</p>
-        <h2 className={HEADING}>How it started</h2>
-        <div className="mt-12">
-          <OriginTimeline />
-        </div>
-      </Band>
-
       {/* The single brand interlude */}
       <BrandInterlude />
 
@@ -270,21 +232,16 @@ export function AboutArticle() {
         <BenchmarkBars />
       </Band>
 
-      {/* WHERE WE'RE GOING — pinned path */}
-      <PinHeading
-        id="roadmap"
-        eyebrow="WHERE WE’RE GOING"
-        title="Where we’re going"
-        tone="deep"
-      >
+      {/* WHERE */}
+      <Band id="roadmap" tone="solid">
+        <p className={EYEBROW}>WHERE WE’RE GOING</p>
+        <h2 className={HEADING}>Where we’re going</h2>
         <RoadmapPath />
-      </PinHeading>
-      <div className="mx-auto max-w-5xl border-t border-line bg-[#0a1228] px-6 pb-16 md:px-8 md:pb-24">
-        <p className="max-w-2xl pt-8 font-serif text-[15px] text-dusk">
+        <p className="mt-10 max-w-2xl font-serif text-[15px] text-dusk">
           Next and Exploring are direction, not shipped functionality. Today and
           the first specialized experience are current.
         </p>
-      </div>
+      </Band>
 
       {/* DEMO */}
       <Band id="demo" tone="sky">

@@ -13,15 +13,12 @@ export function prefersReducedMotion(): boolean {
 }
 
 /**
- * Writes 0..1 scroll progress for a tall (usually sticky) section into a CSS
- * custom property on the element. No React re-render on scroll, so the motion
- * stays on the compositor. With reduced motion the property is pinned to 1, so
- * the finished state is shown immediately.
+ * Writes 0..1 progress for an element as it passes through the viewport into a
+ * CSS custom property. No React re-render on scroll, so the motion stays on the
+ * compositor. Used in normal document flow — never to pin a section. With
+ * reduced motion the property is pinned to 1, showing the finished state.
  */
-export function useScrollProgressVar<T extends HTMLElement>(
-  varName = "--p",
-  mode: "pin" | "cover" = "pin",
-) {
+export function useScrollProgressVar<T extends HTMLElement>(varName = "--p") {
   const ref = useRef<T | null>(null);
 
   useEffect(() => {
@@ -38,16 +35,7 @@ export function useScrollProgressVar<T extends HTMLElement>(
       raf = 0;
       const rect = el.getBoundingClientRect();
       const viewport = window.innerHeight;
-      let progress: number;
-
-      if (mode === "cover") {
-        progress = (viewport - rect.top) / (viewport + rect.height);
-      } else {
-        const travel = rect.height - viewport;
-        progress =
-          travel > 0 ? -rect.top / travel : rect.top < 0 ? 1 : 0;
-      }
-
+      const progress = (viewport - rect.top) / (viewport + rect.height);
       el.style.setProperty(
         varName,
         Math.min(1, Math.max(0, progress)).toFixed(4),
@@ -65,7 +53,7 @@ export function useScrollProgressVar<T extends HTMLElement>(
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
     };
-  }, [varName, mode]);
+  }, [varName]);
 
   return ref;
 }
@@ -95,7 +83,7 @@ export function useStepObserver(count: number) {
         }
         setActive(seen.size ? Math.max(...seen) : 0);
       },
-      { rootMargin: "-45% 0px -45% 0px", threshold: 0 },
+      { rootMargin: "-35% 0px -35% 0px", threshold: 0 },
     );
 
     items.forEach((item) => observer.observe(item));
