@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useScrollProgressVar } from "@/components/about/useMotion";
 import { cn } from "@/lib/utils";
 
 type Step = {
@@ -26,7 +27,7 @@ const STEPS: Step[] = [
   {
     n: "03",
     phase: "Origin",
-    title: "Local tooling",
+    title: "Local proxy",
     body: "The experiment became local tooling around the agent workflow.",
   },
   {
@@ -44,22 +45,21 @@ const STEPS: Step[] = [
 ];
 
 /**
- * Scroll-driven vertical timeline. The rail fills and nodes light as they
- * enter view. Steps stay readable at rest, so nothing is lost without
- * JavaScript or with motion reduced.
+ * ANIMATION 05 — origin timeline.
+ *
+ * The rail is drawn by scroll position (`--p`, transform only). Each milestone
+ * activates as it crosses the middle of the viewport and stays visible, and the
+ * ORIGIN → CURRENT boundary gets its own divider so the historical proxy can
+ * never read as the current product.
  */
 export function OriginTimeline() {
+  const railRef = useScrollProgressVar<HTMLDivElement>("--p", "cover");
   const [reached, setReached] = useState(0);
   const itemRefs = useRef<(HTMLLIElement | null)[]>([]);
 
   useEffect(() => {
     const nodes = itemRefs.current.filter(Boolean) as HTMLLIElement[];
     if (!nodes.length) return;
-
-    if (typeof IntersectionObserver === "undefined") {
-      setReached(nodes.length);
-      return;
-    }
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -69,7 +69,7 @@ export function OriginTimeline() {
           if (index >= 0) setReached((prev) => Math.max(prev, index + 1));
         }
       },
-      { threshold: 0.35, rootMargin: "0px 0px -12% 0px" },
+      { threshold: 0.3, rootMargin: "0px 0px -12% 0px" },
     );
 
     nodes.forEach((node) => observer.observe(node));
@@ -79,7 +79,7 @@ export function OriginTimeline() {
   const activeCount = Math.max(reached, 1);
 
   return (
-    <div className="relative">
+    <div ref={railRef} className="relative">
       <p
         aria-hidden
         className="mb-8 font-mono text-[11px] tracking-[0.22em] text-dusk"
@@ -95,16 +95,14 @@ export function OriginTimeline() {
         />
         <div
           aria-hidden
-          className="absolute left-[7px] top-3 w-px bg-gilt transition-[height] duration-700 ease-out"
-          style={{
-            height: `calc((100% - 1.5rem) * ${activeCount / STEPS.length})`,
-          }}
+          className="absolute bottom-3 left-[7px] top-3 w-px origin-top bg-gilt"
+          style={{ transform: "scaleY(var(--p, 0))" }}
         />
 
         {STEPS.map((step, index) => {
           const isActive = index < activeCount;
           const isCurrent = step.phase === "Current";
-          const showPhase = index === 0 || STEPS[index - 1].phase !== step.phase;
+          const isBoundary = index > 0 && STEPS[index - 1].phase !== step.phase;
 
           return (
             <li
@@ -112,18 +110,29 @@ export function OriginTimeline() {
               ref={(el) => {
                 itemRefs.current[index] = el;
               }}
-              className="relative pb-10 pl-10 last:pb-0"
+              className="relative pb-12 pl-10 last:pb-0"
             >
-              {showPhase ? (
-                <p className="mb-5 font-mono text-[11px] tracking-[0.28em] text-gilt">
-                  {isCurrent ? "CURRENT" : "ORIGIN"}
+              {index === 0 ? (
+                <p className="mb-6 font-mono text-[11px] tracking-[0.28em] text-dusk">
+                  ORIGIN
                 </p>
+              ) : null}
+
+              {isBoundary ? (
+                <div className="mb-8 flex items-center gap-4">
+                  <span aria-hidden className="h-px flex-1 bg-gilt/50" />
+                  <span className="font-mono text-[11px] tracking-[0.28em] text-gilt">
+                    CURRENT
+                  </span>
+                  <span aria-hidden className="h-px flex-1 bg-gilt/50" />
+                </div>
               ) : null}
 
               <span
                 aria-hidden
                 className={cn(
-                  "absolute left-0 top-[1.9rem] flex h-[15px] w-[15px] items-center justify-center rounded-full border",
+                  "absolute left-0 flex h-[15px] w-[15px] items-center justify-center rounded-full border",
+                  isBoundary ? "top-[5.4rem]" : "top-[1.9rem]",
                   isActive
                     ? isCurrent
                       ? "border-gilt bg-gilt"
@@ -148,7 +157,14 @@ export function OriginTimeline() {
                   <span className="font-mono text-[11px] tracking-[0.2em] text-gilt">
                     {step.n}
                   </span>
-                  <h3 className="font-serif text-xl font-medium text-moon md:text-2xl">
+                  <h3
+                    className={cn(
+                      "font-serif font-medium text-moon",
+                      isCurrent
+                        ? "text-2xl md:text-[2rem]"
+                        : "text-xl md:text-2xl",
+                    )}
+                  >
                     {step.title}
                   </h3>
                 </div>

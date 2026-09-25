@@ -1,58 +1,60 @@
-const PARTS = [
-  "AI access",
-  "Workflow",
-  "Limits / credits",
-  "Building",
-  "Submission",
-];
+"use client";
+
+import { Fragment } from "react";
+import { useInView } from "@/components/about/useMotion";
+import { cn } from "@/lib/utils";
+
+const STEPS = ["Team", "Harness", "AI access", "Build", "Submission"];
 
 /**
- * The first specialized harness. Parts of a hackathon are listed as the shape
- * the harness is being built around, and labelled as being shaped rather than
- * shipped, so nothing here reads as an adoption claim.
+ * ANIMATION 06 — hackathon harness.
+ *
+ * Reaching the section starts a continuous flow: each stage lights in turn and
+ * a signal travels down the connector between them, so the first specialised
+ * harness reads as a working system rather than a list.
  */
 export function HackathonFlow() {
+  const { ref, inView } = useInView<HTMLDivElement>(0.3);
+
   return (
-    <div className="flex flex-col items-center">
-      <span className="border border-line bg-ink/40 px-6 py-3 font-mono text-[11px] tracking-[0.2em] text-moon">
-        TEAM
-      </span>
+    <div ref={ref} className="flex flex-col items-center">
+      {STEPS.map((step, index) => {
+        const isHarness = index === 1;
+        return (
+          <Fragment key={step}>
+            <span
+              className={cn(
+                "border px-6 py-3 font-mono text-[11px] tracking-[0.2em]",
+                isHarness
+                  ? "border-gilt/60 bg-gilt/10 text-gilt"
+                  : "border-line bg-ink/40 text-moon",
+                inView && "about-node-lit",
+              )}
+              style={{
+                animationDelay: `${index * 0.45}s`,
+                animationDuration: "2.6s",
+              }}
+            >
+              {step.toUpperCase()}
+            </span>
 
-      <div aria-hidden className="relative h-10 w-px bg-line">
-        <span className="about-signal absolute -left-[2px] top-0 h-1 w-1 rounded-full bg-gilt" />
-      </div>
-
-      <span className="border border-gilt/60 bg-gilt/10 px-6 py-3 font-mono text-[11px] tracking-[0.2em] text-gilt">
-        HACKATHON HARNESS
-      </span>
-
-      <div aria-hidden className="h-8 w-px bg-line" />
-
-      <div className="w-full max-w-md border border-line bg-ink/40 p-5">
-        <div className="flex items-center justify-between gap-4">
-          <p className="font-mono text-[10px] tracking-[0.2em] text-gilt">
-            SHAPED AROUND
-          </p>
-          <p className="font-mono text-[10px] tracking-[0.16em] text-dusk">
-            BEING SHAPED
-          </p>
-        </div>
-        <ul className="mt-4 space-y-2.5">
-          {PARTS.map((part, index) => (
-            <li key={part} className="flex items-center gap-3">
-              <span className="font-mono text-[10px] text-gilt">
-                {String(index + 1).padStart(2, "0")}
+            {index < STEPS.length - 1 ? (
+              <span aria-hidden className="relative h-10 w-px bg-line">
+                {inView ? (
+                  <span
+                    className="about-signal absolute -left-[2px] top-0 h-1 w-1 rounded-full bg-gilt"
+                    style={{ animationDelay: `${index * 0.45}s` }}
+                  />
+                ) : null}
               </span>
-              <span className="font-serif text-[15px] text-moon">{part}</span>
-              <span
-                aria-hidden
-                className="about-node-pulse ml-auto h-1.5 w-1.5 rounded-full bg-gilt"
-                style={{ animationDelay: `${index * 0.35}s` }}
-              />
-            </li>
-          ))}
-        </ul>
-      </div>
+            ) : null}
+          </Fragment>
+        );
+      })}
+
+      <p className="mt-8 font-mono text-[10px] tracking-[0.16em] text-dusk">
+        SHAPED AROUND HACKATHON TEAMS · BEING SHAPED
+      </p>
     </div>
   );
 }

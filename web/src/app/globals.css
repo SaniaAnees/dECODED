@@ -739,6 +739,122 @@ body {
   }
 }
 
+/* Hero harness flow — SVG signal travelling a path (paths use pathLength=1). */
+.about-flow-signal {
+  stroke-dasharray: 0.06 0.94;
+  stroke-dashoffset: 1;
+  animation: about-flow-travel 2.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes about-flow-travel {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Nodes lighting in sequence along the flow. */
+.about-node-lit {
+  animation: about-node-lit 2.8s ease-in-out infinite;
+}
+
+@keyframes about-node-lit {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  14%,
+  62% {
+    opacity: 1;
+  }
+}
+
+/* Benchmark bars. Transition on transform only. */
+.about-bar-line {
+  transform-origin: left;
+  transform: scaleX(0);
+  transition: transform 1.1s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.about-bar-line[data-grown="true"] {
+  transform: scaleX(1);
+}
+
+/* Horizontal roadmap path drawing. */
+.about-path-fill {
+  transform-origin: left;
+  transform: scaleX(var(--p, 0));
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Mission sequence — concepts take focus in turn. */
+.about-mission-row {
+  opacity: 0.28;
+  transform: translateY(0.75rem);
+  transition:
+    opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.about-mission-row[data-active="true"] {
+  opacity: 1;
+  transform: none;
+}
+
+.about-mission-row[data-past="true"] {
+  opacity: 0.55;
+  transform: scale(0.93);
+  transform-origin: left center;
+}
+
+.about-mission-rule {
+  display: block;
+  height: 1px;
+  width: 0;
+  background: var(--gilt);
+  transition: width 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.about-mission-row[data-active="true"] .about-mission-rule {
+  width: 100%;
+}
+
+.about-mission-row[data-past="true"] .about-mission-rule {
+  width: 28%;
+}
+
+/* JS-toggled reveal (data-visible), for sequences that fire on first view. */
+.about-js-reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.about-js-reveal[data-visible="true"] {
+  opacity: 1;
+  transform: none;
+}
+
+/* Personalised branches — active branch expands. */
+.about-branch {
+  transition:
+    opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  opacity: 0.4;
+  transform: scale(0.96);
+}
+
+.about-branch[data-active="true"] {
+  opacity: 1;
+  transform: none;
+}
+
 /* Full-bleed bands, so consecutive sections are not all the same sky. */
 .about-band-deep {
   background: rgba(8, 14, 32, 0.55);
@@ -923,6 +1039,43 @@ body {
     opacity: 1;
     transform: none;
     filter: none;
+  }
+
+  .about-flow-signal,
+  .about-node-lit {
+    animation: none;
+  }
+
+  .about-node-lit {
+    opacity: 1;
+  }
+
+  .about-bar-line {
+    transition: none;
+    transform: scaleX(1);
+  }
+
+  .about-path-fill {
+    transition: none;
+    transform: scaleX(1);
+  }
+
+  .about-js-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .about-mission-row,
+  .about-branch {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .about-mission-rule {
+    width: 100%;
+    transition: none;
   }
 
   .about-step {

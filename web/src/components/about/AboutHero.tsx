@@ -1,4 +1,4 @@
-import { HarnessDiagram } from "@/components/about/HarnessDiagram";
+import { HeroFlow } from "@/components/about/HeroFlow";
 import { Wordmark } from "@/components/landing/Wordmark";
 
 const LINES = ["Build", "at the edge", "of technology"];
@@ -62,7 +62,7 @@ export function AboutHero() {
         </div>
 
         <div className="mt-20 md:mt-24">
-          <HarnessDiagram variant="hero" />
+          <HeroFlow />
         </div>
       </div>
     </section>
