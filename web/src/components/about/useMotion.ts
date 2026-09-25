@@ -62,10 +62,14 @@ export function useScrollProgressVar<T extends HTMLElement>(varName = "--p") {
  * Sequential step activation. Render `count` sentinel elements carrying
  * `data-step={i}` inside the returned root; whichever sentinel is crossing the
  * middle of the viewport becomes active. Works in both scroll directions.
+ *
+ * `initial` is the state rendered on the server. Pass the finished step for
+ * sequences that must be fully readable without JavaScript — the observer
+ * replaces it with the real position as soon as it runs.
  */
-export function useStepObserver(count: number) {
+export function useStepObserver(count: number, initial = 0) {
   const rootRef = useRef<HTMLDivElement | null>(null);
-  const [active, setActive] = useState(0);
+  const [active, setActive] = useState(initial);
 
   useEffect(() => {
     const root = rootRef.current;

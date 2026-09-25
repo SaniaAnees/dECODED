@@ -9,6 +9,7 @@ import { ContextTimeline } from "@/components/about/ContextTimeline";
 import { DemoSlot } from "@/components/about/DemoSlot";
 import { FounderBlock } from "@/components/about/FounderBlock";
 import { HackathonFlow } from "@/components/about/HackathonFlow";
+import { HarnessBuildAnimation } from "@/components/about/HarnessBuildAnimation";
 import { HarnessDiagram } from "@/components/about/HarnessDiagram";
 import { ImplementationNote } from "@/components/about/ImplementationNote";
 import { MissionSequence } from "@/components/about/MissionSequence";
@@ -16,6 +17,7 @@ import { OriginTimeline } from "@/components/about/OriginTimeline";
 import { PersonalizedBranches } from "@/components/about/PersonalizedBranches";
 import { Reveal } from "@/components/about/Reveal";
 import { RoadmapPath } from "@/components/about/RoadmapPath";
+import { SectionDivider } from "@/components/about/SectionDivider";
 import { SocialList } from "@/components/about/SocialLinks";
 import { cn } from "@/lib/utils";
 import {
@@ -81,6 +83,28 @@ const BAND = {
 export function AboutArticle() {
   return (
     <>
+      {/* WHAT WE BUILD — what UseCoded is */}
+      <section
+        id="what"
+        className="about-band-solid scroll-mt-[4.5rem] border-t border-line"
+      >
+        <div className="mx-auto max-w-5xl px-6 pt-16 md:px-8 md:pt-24">
+          <p className={EYEBROW}>WHAT WE BUILD</p>
+          <h2 className={HEADING}>
+            An AI coding harness built around the way you build.
+          </h2>
+          <p className="mt-6 max-w-2xl font-serif text-lg leading-relaxed text-mist">
+            UseCoded brings the context, tools, models, and workflow around an
+            AI-assisted coding session into a layer that can be shaped around
+            the way you work.
+          </p>
+        </div>
+
+        <HarnessBuildAnimation />
+      </section>
+
+      <SectionDivider />
+
       {/* WHY */}
       <Band id="why" tone="deep">
         <p className={EYEBROW}>WHY USECODED EXISTS</p>

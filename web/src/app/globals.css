@@ -811,6 +811,35 @@ body {
   transform: none;
 }
 
+/* ==========================================================================
+   Harness build animation — top of /about.
+   One object (the developer's intent) with the surrounding system assembling
+   around it. Progress comes from normal document scroll; no scroll hijacking.
+   ========================================================================== */
+
+.hba-cursor {
+  animation: hba-blink 1.1s steps(1, end) infinite;
+}
+
+@keyframes hba-blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  51%,
+  100% {
+    opacity: 0.15;
+  }
+}
+
+/* Motion reduced: show the finished state, everything revealed at once. */
+.hba[data-reduced="true"] .hba-hide,
+.hba[data-reduced="true"] .hba-cursor {
+  opacity: 1 !important;
+  transform: none !important;
+  animation: none !important;
+}
+
 /* Harness panel swap — quiet, no layout transition. */
 .about-panel-in {
   animation: about-panel-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -1031,6 +1060,11 @@ body {
     animation: none;
     opacity: 1;
     transform: none;
+  }
+
+  .hba-cursor {
+    animation: none;
+    opacity: 1;
   }
 
   .about-js-reveal {
